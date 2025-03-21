@@ -1,0 +1,70 @@
+================================================================================
+================================================================================
+-- System Title: Attendance Management System (AMS)
+-- Company: University of Southeastern Philippines
+-- Address:  -.-
+-- Date Started: March 20, 2025
+================================================================================
+================================================================================
+
+'-------------------------------------------------------------------------------
+'=-Target Unit Specification ****
+'-------------------------------------------------------------------------------
+  * 2.70 Ghz Dual Core
+  * 1014mb RAM
+  * 256mb Graphics
+  * 75gb Hard Disk
+  * Windows 7
+
+'-------------------------------------------------------------------------------
+'=-Tool setup ****
+'-------------------------------------------------------------------------------
+
+1. Download visual studio code(v1.85.1)
+   - https://code.visualstudio.com/
+
+2. Download python(v3.10.4)
+   - https://www.python.org/downloads/  
+
+3. Download xampp
+   - https://www.apachefriends.org/index.html
+
+
+'-------------------------------------------------------------------------------
+'=-Project Properties Setup ****
+'-------------------------------------------------------------------------------
+* Framework: Django-5.0.1
+* Added References
+    - pip install djangorestframework(3.15.2)
+    - pip install django-cors-headers(4.7.0)
+    - pip install mysqlclient(2.2.7)
+
+'-------------------------------------------------------------------------------
+'=-MySql Database Setup ****
+'-------------------------------------------------------------------------------
+  * database: ams
+
+================================================================================
+=- WORK LOG -= FORMAT: YYMMDD - NO. OF DAYS - VERSION * NAME OF CODER *
+================================================================================
+'-------------------------------------------------------------------------------
+'=-250320 - 0001 - Version 0.0.1 - * BOB *
+'-------------------------------------------------------------------------------
+=- created django project 
+  * added project 'amsProj'
+  * added app 'amsApp'
+  * added api 'api'
+
+=-api
+  * added file 'urls.py', 'views.py', 'serializers.py'
+
+=-urls.py(api)
+  * added path 'getDataPunch'  
+  * added path 'getDataShift' 
+  * added path 'addPunchLog'
+
+=-views.py 
+  * added function 'getDataPunch'
+  * added function 'getDataShift'
+  * added function 'addPunchLog'
+  
