@@ -1,0 +1,225 @@
+{% extends 'amsApp/base.html' %} {% block content %}
+<div class="content-wrapper">
+	<!-- Content Header (Page header) -->
+	<div class="content-header">
+		<div class="container-fluid">
+			<div class="row mb-2">
+				<div class="col-sm-6">
+					<h1 class="m-0">Attendance Logs</h1>
+				</div>
+				<!-- /.col -->
+				<div class="col-sm-6">
+					<ol class="breadcrumb float-sm-right">
+						<li class="breadcrumb-item"><a href="#">Home</a></li>
+						<li class="breadcrumb-item active">Attendance Logs</li>
+					</ol>
+				</div>
+				<!-- /.col -->
+			</div>
+			<!-- /.row -->
+		</div>
+		<!-- /.container-fluid -->
+	</div>
+	<!-- /.content-header -->
+
+	<!-- Main content -->
+	<section class="content">
+		<div class="container-fluid">
+			<!-- Small boxes (Stat box) -->
+			<div class="row">
+				<div class="col-lg-3 col-6">
+					<!-- small box -->
+					<div class="small-box bg-info">
+						<div class="inner">
+							<h3>150</h3>
+
+							<p>New Orders</p>
+						</div>
+						<div class="icon">
+							<i class="ion ion-bag"></i>
+						</div>
+						<a href="#" class="small-box-footer"
+							>More info <i class="fas fa-arrow-circle-right"></i
+						></a>
+					</div>
+				</div>
+				<!-- ./col -->
+				<div class="col-lg-3 col-6">
+					<!-- small box -->
+					<div class="small-box bg-success">
+						<div class="inner">
+							<h3>53<sup style="font-size: 20px">%</sup></h3>
+
+							<p>Bounce Rate</p>
+						</div>
+						<div class="icon">
+							<i class="ion ion-stats-bars"></i>
+						</div>
+						<a href="#" class="small-box-footer"
+							>More info <i class="fas fa-arrow-circle-right"></i
+						></a>
+					</div>
+				</div>
+				<!-- ./col -->
+				<div class="col-lg-3 col-6">
+					<!-- small box -->
+					<div class="small-box bg-warning">
+						<div class="inner">
+							<h3>44</h3>
+
+							<p>User Registrations</p>
+						</div>
+						<div class="icon">
+							<i class="ion ion-person-add"></i>
+						</div>
+						<a href="#" class="small-box-footer"
+							>More info <i class="fas fa-arrow-circle-right"></i
+						></a>
+					</div>
+				</div>
+				<!-- ./col -->
+				<div class="col-lg-3 col-6">
+					<!-- small box -->
+					<div class="small-box bg-danger">
+						<div class="inner">
+							<h3>65</h3>
+
+							<p>Unique Visitors</p>
+						</div>
+						<div class="icon">
+							<i class="ion ion-pie-graph"></i>
+						</div>
+						<a href="#" class="small-box-footer"
+							>More info <i class="fas fa-arrow-circle-right"></i
+						></a>
+					</div>
+				</div>
+				<!-- ./col -->
+			</div>
+			<!-- /.row -->
+			<!-- Main row -->
+			<div class="row">
+				<!-- Left col -->
+				<section class="col-lg-12 connectedSortable">
+					<!-- Attendance Logs -->
+					<div class="card">
+						<div class="card-header">
+							<h3 class="card-title">
+								<i class="fas fa-chart-pie mr-1"></i>
+								Event Logs
+							</h3>
+						</div>
+						<!-- /.card-header -->
+						<div class="card-body">
+							<table
+								id="exampleTable"
+								class="table table-bordered table-striped"
+							>
+								<thead>
+									<tr>
+										<th>Punch No</th>
+										<th>System Date & Time</th>
+										<th>Shift No</th>
+										<th>Employee ID</th>
+										<th>Punch Date</th>
+										<th>Shift No</th>
+										<th>Punch Time In</th>
+										<th>Punch Time Out</th>
+										<th>Latitude</th>
+										<th>Longitude</th>
+									</tr>
+								</thead>
+							</table>
+						</div>
+						<!-- /.card-body -->
+					</div>
+					<!-- /.card -->
+				</section>
+				<!-- /.Left col -->
+			</div>
+			<!-- /.row (main row) -->
+		</div>
+		<!-- /.container-fluid -->
+	</section>
+	<!-- /.content -->
+</div>
+{% endblock %} {% block scripts %}
+<script>
+	$(document).ready(function () {
+		// var siteTable = $("#example").DataTable({
+		// 	ajax: "/sdgJsonList/",
+		// 	rowId: "sdgId",
+		// 	order: [0, "desc"],
+		// 	columns: [
+		// 		{ title:"ID",data: "sdgId",  width: "5%" },
+		// 		{ title: "Name", data: "sdgName" },
+		//         { title: "Description", data: "description" },
+		// 		{
+		//             title: "Action",
+		// 			data: null,
+		// 			defaultContent:
+		// 				'<button class="btn edit-area btn-default" > <i class="fas fa-edit"></i></button> ' +
+		// 				'<button class="btn delete-area btn-default "> <i class="fa fa-trash" aria-hidden="true"></i></button> ',
+		// 			targets: -1,
+		// 			width: "15%",
+		// 		},
+		// 	],
+		// 	select: {
+		// 		style: "os",
+		// 		selector: "td:not(:first-child)",
+		// 	},
+		// 	});
+
+		// $("#exampleTable")
+		// 	.DataTable({
+		// 		responsive: true,
+		// 		lengthChange: false,
+		// 		autoWidth: false,
+		// 		buttons: ["copy", "csv", "excel", "pdf", "print", "colvis"],
+		// 	})
+		// 	.buttons()
+		// 	.container()
+		// 	.appendTo("#exampleTable_wrapper .col-md-6:eq(0)");
+
+		var APIurl = "https://dashboard.usep.edu.ph/api/get-data-punch";
+
+		fetch(APIurl)
+			.then((response) => response.json())
+			.then((data) => console.log(data))
+			.catch((error) => console.error("Error:", error));
+
+		$(document).ready(function () {
+			let table = $("#exampleTable").DataTable({
+				responsive: true,
+				lengthChange: false,
+				autoWidth: false,
+				ajax: {
+					url: APIurl,
+					type: "GET",
+					dataSrc: "", // Since the API directly returns an array
+				},
+				columns: [
+					{ data: "punchNo", title: "Punch No" },
+					{ data: "systemDateTime", title: "System Date & Time" },
+					{ data: "shiftNo", title: "Shift No" },
+					{ data: "empId", title: "Employee ID" },
+					{ data: "punchdate", title: "Punch Date" },
+					{ data: "punchTimeIn", title: "Punch Time In" },
+					{ data: "punchTimeOut", title: "Punch Time Out" },
+					{ data: "latitude", title: "Latitude" },
+					{ data: "longitude", title: "Longitude" },
+					{ data: "isActive", title: "Active Status" },
+				],
+				dom: "Bfrtip", // 🔹 Ensure buttons are enabled in the DataTable layout
+				buttons: ["copy", "csv", "excel", "pdf", "print", "colvis"],
+				order: [[1, "desc"]],
+			});
+
+			table
+				.buttons()
+				.container()
+				.appendTo("#exampleTable_wrapper .col-md-6:eq(0)");
+		});
+	});
+</script>
+{% endblock %}
