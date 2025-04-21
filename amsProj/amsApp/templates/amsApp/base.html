@@ -1,0 +1,157 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Attendance Monitoring System</title>
+
+		<!-- AdminLTE CSS -->
+		<link
+			rel="stylesheet"
+			href="{% static 'amsApp/dist/css/adminlte.min.css' %}"
+		/>
+		<link
+			rel="stylesheet"
+			href="{% static 'amsApp/plugins/fontawesome-free/css/all.min.css' %}"
+		/>
+
+		<!-- Google Font: Source Sans Pro -->
+		<link
+			rel="stylesheet"
+			href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback"
+		/>
+		<!-- Ionicons -->
+		<link
+			rel="stylesheet"
+			href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css"
+		/>
+
+		<!--datatables-->
+		<!-- <link
+			rel="stylesheet"
+			href="https://cdn.datatables.net/2.2.2/css/dataTables.dataTables.min.css"
+		/> -->
+		<!-- DataTables CSS -->
+
+		<link
+			rel="stylesheet"
+			href="{% static 'amsApp/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css' %}"
+		/>
+		<link
+			rel="stylesheet"
+			href="{% static 'amsApp/plugins/datatables-responsive/css/responsive.bootstrap4.min.css' %}"
+		/>
+		<link
+			rel="stylesheet"
+			href="{% static 'amsApp/plugins/datatables-buttons/css/buttons.bootstrap4.min.css' %}"
+		/>
+	</head>
+	<body class="hold-transition sidebar-mini layout-fixed">
+		<div class="wrapper">
+			<!-- Navbar -->
+			{% include 'includes/navbar.html' %}
+			<!-- Sidebar -->
+			{% include 'includes/sidebar.html' %}
+
+			<!-- Main Sidebar Container -->
+
+			<!-- Content Wrapper -->
+			{% block content %}{% endblock %}
+
+			<!-- <div class="content-wrapper">
+				<section class="content">
+					<div class="container-fluid">add block content here</div>
+				</section>
+			</div> -->
+			<!-- Footer -->
+			{% include 'includes/footer.html' %}
+			<!-- <aside class="control-sidebar control-sidebar-dark"> -->
+			<!-- Control sidebar content goes here -->
+			<!-- </aside> -->
+
+			<aside class="control-sidebar control-sidebar-dark">
+				<div class="p-3 control-sidebar-content">
+					<h5>Customize AdminLTE</h5>
+					<hr class="mb-2" />
+
+					<!-- Dark Mode -->
+					<div class="mb-3">
+						<input type="checkbox" id="darkModeSwitch" />
+						<label for="darkModeSwitch">Dark Mode</label>
+					</div>
+
+					<!-- Sidebar Mini -->
+					<div class="mb-3">
+						<input type="checkbox" id="sidebarMiniSwitch" />
+						<label for="sidebarMiniSwitch">Sidebar Mini</label>
+					</div>
+
+					<h5 class="mt-3">Small Text Options</h5>
+					<hr class="mb-2" />
+
+					<!-- Small Text Toggles -->
+					<div class="mb-3">
+						<input type="checkbox" id="smallBodyText" />
+						<label for="smallBodyText">Body</label>
+					</div>
+					<div class="mb-3">
+						<input type="checkbox" id="smallNavbarText" />
+						<label for="smallNavbarText">Navbar</label>
+					</div>
+					<div class="mb-3">
+						<input type="checkbox" id="smallBrandText" />
+						<label for="smallBrandText">Brand</label>
+					</div>
+					<div class="mb-3">
+						<input type="checkbox" id="smallSidebarText" />
+						<label for="smallSidebarText">Sidebar Nav</label>
+					</div>
+					<div class="mb-3">
+						<input type="checkbox" id="smallFooterText" />
+						<label for="smallFooterText">Footer</label>
+					</div>
+				</div>
+			</aside>
+		</div>
+
+		<!-- Scripts -->
+		<script src="{% static 'amsApp/plugins/jquery/jquery.min.js' %}"></script>
+		<script src="{% static 'amsApp/plugins/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+		<script src="{% static 'amsApp/dist/js/adminlte.min.js' %}"></script>
+		<script src="{% static 'amsApp/dist/js/darkmode.js' %}"></script>
+		<!-- <script src="{% static 'amsApp/dist/js/demo.js' %}"></script> -->
+
+		<script src="{% static 'amsApp/dist/js/darkmode.js' %}"></script>
+		<!--datatables-->
+		<!-- <script src="http://cdn.datatables.net/2.2.2/js/dataTables.min.js"></script> -->
+
+		<!-- DataTables -->
+		<!-- <script src="{% static 'amsApp/plugins/datatables/jquery.dataTables.min.js' %}"></script>
+		<script src="{% static 'amsApp/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js' %}"></script>
+		<script src="{% static 'amsApp/plugins/datatables-responsive/js/dataTables.responsive.min.js' %}"></script>
+		<script src="{% static 'amsApp/plugins/datatables-responsive/js/responsive.bootstrap4.min.js' %}"></script>
+		<script src="{% static 'amsApp/plugins/datatables-buttons/js/dataTables.buttons.min.js' %}"></script>
+		<script src="{% static 'amsApp/plugins/datatables-buttons/js/buttons.bootstrap4.min.js' %}"></script>
+		<script src="{% static 'amsApp/plugins/jszip/jszip.min.js' %}"></script>
+		<script src="{% static 'amsApp/plugins/pdfmake/pdfmake.min.js' %}"></script>
+		<script src="{% static 'amsApp/plugins/pdfmake/vfs_fonts.js' %}"></script>
+		<script src="{% static 'amsApp/plugins/datatables-buttons/js/buttons.html5.min.js' %}"></script>
+		<script src="{% static 'amsApp/plugins/datatables-buttons/js/buttons.print.min.js' %}"></script>
+		<script src="{% static 'amsApp/plugins/datatables-buttons/js/buttons.colVis.min.js' %}"></script> -->
+
+		<script src="{% static 'amsApp/plugins/datatables/jquery.dataTables.min.js' %}"></script>
+		<script src="{% static 'amsApp/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js' %}"></script>
+		<script src="{% static 'amsApp/plugins/datatables-responsive/js/dataTables.responsive.min.js' %}"></script>
+		<script src="{% static 'amsApp/plugins/datatables-responsive/js/responsive.bootstrap4.min.js' %}"></script>
+		<script src="{% static 'amsApp/plugins/datatables-buttons/js/dataTables.buttons.min.js' %}"></script>
+		<script src="{% static 'amsApp/plugins/datatables-buttons/js/buttons.bootstrap4.min.js' %}"></script>
+		<script src="{% static 'amsApp/plugins/jszip/jszip.min.js' %}"></script>
+		<script src="{% static 'amsApp/plugins/pdfmake/pdfmake.min.js' %}"></script>
+		<script src="{% static 'amsApp/plugins/pdfmake/vfs_fonts.js' %}"></script>
+		<script src="{% static 'amsApp/plugins/datatables-buttons/js/buttons.html5.min.js' %}"></script>
+		<script src="{% static 'amsApp/plugins/datatables-buttons/js/buttons.print.min.js' %}"></script>
+		<script src="{% static 'amsApp/plugins/datatables-buttons/js/buttons.colVis.min.js' %}"></script>
+		{% block scripts %} {% endblock %}
+	</body>
+</html>

@@ -1,0 +1,208 @@
+{% extends 'amsApp/base.html' %} {% block content %}
+<div class="content-wrapper">
+	<!-- Content Header (Page header) -->
+	<div class="content-header">
+		<div class="container-fluid">
+			<div class="row mb-2">
+				<div class="col-sm-6">
+					<h1 class="m-0">Event Manager</h1>
+				</div>
+				<!-- /.col -->
+				<div class="col-sm-6">
+					<ol class="breadcrumb float-sm-right">
+						<li class="breadcrumb-item"><a href="#">Home</a></li>
+						<li class="breadcrumb-item active">Event Manager</li>
+					</ol>
+				</div>
+				<!-- /.col -->
+			</div>
+			<!-- /.row -->
+		</div>
+		<!-- /.container-fluid -->
+	</div>
+	<!-- /.content-header -->
+
+	<!-- Main content -->
+	<section class="content">
+		<div class="container-fluid">
+			<!-- Main row -->
+			<div class="row">
+				<!-- Left col -->
+				<section class="col-lg-12 connectedSortable">
+					<!-- Attendance Logs -->
+					<div class="card">
+						<div class="card-header">
+							<h3 class="card-title">
+								<i class="fas fa-chart-pie mr-1"></i>
+								Event Record
+							</h3>
+							<button class="btn btn-primary float-right" id="addEvent">
+								Add Event
+							</button>
+						</div>
+						<!-- /.card-header -->
+						<div class="card-body">
+							<table
+								id="exampleTable"
+								class="table table-bordered table-striped"
+							>
+								<thead>
+									<tr>
+										<th>Event No</th>
+										<th>Event Name</th>
+										<th>Event Type</th>
+										<th>Break No</th>
+										<th>Description</th>
+										<th>Start Time</th>
+										<th>End Time</th>
+										<th>Action</th>
+									</tr>
+								</thead>
+							</table>
+						</div>
+						<!-- /.card-body -->
+					</div>
+					<!-- /.card -->
+				</section>
+				<!-- /.Left col -->
+			</div>
+			<!-- /.row (main row) -->
+		</div>
+		<!-- /.container-fluid -->
+	</section>
+	<!-- /.content -->
+</div>
+{% include 'amsApp/modals/event-modal.html' %}  
+{% endblock %} 
+{% block scripts %}
+<script>
+	$(document).ready(function () {
+		var APIurl = "{% url 'shiftJsonList'%}";
+
+		fetch(APIurl)
+			.then((response) => response.json())
+			.then((data) => console.log(data))
+			.catch((error) => console.error("Error:", error));
+
+			let table = $("#exampleTable").DataTable({
+				responsive: true,
+				lengthChange: false,
+				autoWidth: false,
+				ajax: {
+					url: APIurl,
+				},
+				columns: [
+					{ data: "shiftNo", title: "Event No" },
+					{ data: "shiftName", title: "Event Name" },
+					{ data: "shiftTypeNo", title: "Event Type" },
+					{ data: "breakNo", title: "Break No" },
+					{ data: "description", title: "Description" },
+					{ data: "startTime", title: "Start Time" },
+					{ data: "endTime", title: "End Time" },
+					{
+						data: null,
+						title: "Actions",
+						render: function (data, type, row) {
+							return `
+							<a href="javascript:void(0);" class="editBtn" data-id="${row.shiftNo}" title="Edit">
+								<i class="fa fa-edit" style="color: #33adff; margin-right: 5px;"></i>
+							</a>
+
+							<a href="javascript:void(0);" class="deleteBtn" data-id="${row.shiftNo}" title="Delete">
+								<i class="fas fa-trash" style="color: #c94c4c;"></i>
+							</a>
+						`;
+						},
+					},
+				],
+				dom: "Bfrtip", // 🔹 Ensure buttons are enabled in the DataTable layout
+				buttons: ["copy", "csv", "excel", "pdf", "print", "colvis"],
+			});
+
+			table
+				.buttons()
+				.container()
+				.appendTo("#exampleTable_wrapper .col-md-6:eq(0)");
+
+			// Show modal for adding new event
+			$("#addEvent").click(function () {
+				$("#eventForm")[0].reset();
+				$("#eventModal").modal("show");
+			});
+
+			$("#exampleTable").on("click", ".editBtn", function () {  // Fixed class name
+				let rowData = table.row($(this).parents("tr")).data();
+				if (rowData) {
+					$("#shiftNo").val(rowData.shiftNo);
+					$("#shiftName").val(rowData.shiftName);
+					$("#shiftTypeNo").val(rowData.shiftTypeNo);
+					$("#breakNo").val(rowData.breakNo);
+					$("#description").val(rowData.description);
+					$("#startTime").val(rowData.startTime);
+					$("#endTime").val(rowData.endTime);
+					$("#eventModal").modal("show");
+				} else {
+					console.error("Row data not found");
+				}
+			});
+
+	
+			//save update function  
+			$("#saveEvent").click(function (e) {
+				e.preventDefault();
+				
+				let formData = {
+					shiftNo: $("#shiftNo").val(),
+					shiftName: $("#shiftName").val(),
+					shiftTypeNo: $("#shiftTypeNo").val(),
+					breakNo: $("#breakNo").val(),
+					description: $("#description").val(),
+					startTime: $("#startTime").val(),
+					endTime: $("#endTime").val(),
+					isActive: "Y",
+				};
+
+				$.ajax({
+					type: "POST",
+					url: "/shiftSaveUpdate/", // URL for shiftSaveUpdate in urls.py
+					data: formData,
+					success: function (response) {
+						alert(response.Status);
+						location.reload(); // Refresh after saving
+					},
+					error: function (xhr) {
+						alert("Error: " + xhr.responseText);
+					}
+				});
+			});
+	
+						
+		});
+
+		$(document).on("click", ".deleteBtn", function () {
+			let shiftNo = $(this).data("id"); // Get shift number from button attribute
+
+			if (confirm("Are you sure you want to delete this shift?")) {
+				$.ajax({
+					url: "/deleteShiftView/",  // Django URL
+					type: "POST",
+					data: {
+						shiftNo: shiftNo,
+						csrfmiddlewaretoken: "{{ csrf_token }}",  // CSRF protection
+					},
+					success: function (response) {
+						if (response.Status === "Deleted") {
+							alert("Shift deleted successfully!");
+							location.reload();  // Refresh table
+						} else {
+							alert("Error: " + response.Message);
+						}
+					},
+					error: function () {
+						alert("Something went wrong. Please try again.");
+					}
+				});
+			}
+		});
+</script>
+{% endblock %}
