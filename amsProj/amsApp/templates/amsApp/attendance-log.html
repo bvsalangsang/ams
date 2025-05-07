@@ -146,43 +146,9 @@
 {% endblock %} {% block scripts %}
 <script>
 	$(document).ready(function () {
-		// var siteTable = $("#example").DataTable({
-		// 	ajax: "/sdgJsonList/",
-		// 	rowId: "sdgId",
-		// 	order: [0, "desc"],
-		// 	columns: [
-		// 		{ title:"ID",data: "sdgId",  width: "5%" },
-		// 		{ title: "Name", data: "sdgName" },
-		//         { title: "Description", data: "description" },
-		// 		{
-		//             title: "Action",
-		// 			data: null,
-		// 			defaultContent:
-		// 				'<button class="btn edit-area btn-default" > <i class="fas fa-edit"></i></button> ' +
-		// 				'<button class="btn delete-area btn-default "> <i class="fa fa-trash" aria-hidden="true"></i></button> ',
-		// 			targets: -1,
-		// 			width: "15%",
-		// 		},
-		// 	],
-		// 	select: {
-		// 		style: "os",
-		// 		selector: "td:not(:first-child)",
-		// 	},
-		// 	});
-
-		// $("#exampleTable")
-		// 	.DataTable({
-		// 		responsive: true,
-		// 		lengthChange: false,
-		// 		autoWidth: false,
-		// 		buttons: ["copy", "csv", "excel", "pdf", "print", "colvis"],
-		// 	})
-		// 	.buttons()
-		// 	.container()
-		// 	.appendTo("#exampleTable_wrapper .col-md-6:eq(0)");
-
-		var APIurl = "https://dashboard.usep.edu.ph/api/get-data-punch";
-
+		
+		var APIurl = "https://ams.usep.edu.ph/api/get-data-punch";
+		
 		fetch(APIurl)
 			.then((response) => response.json())
 			.then((data) => console.log(data))

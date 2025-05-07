@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-_7u&s9wrcl+l03@y5%6brf^sv745_t=0i3ni)@*s_lxz@jej!0
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 
@@ -135,11 +135,34 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'amsApp', 'static'),  # App-specific static files
-]
+# STATICFILES_DIRS = [
+#     os.path.join(BASE_DIR, 'amsApp', 'static'),  # App-specific static files
+# ]
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# CORS Configuration
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:3000",  # Replace with your Flutter app's URL or IP
+#     "http://127.0.0.1:3000",  # Add other origins as needed
+# ]
+
+# Alternatively, allow all origins (not recommended for production):
+CORS_ALLOW_ALL_ORIGINS = True
+
+# REST Framework Configuration
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ],
+}
