@@ -38,12 +38,13 @@ class PunchLog(models.Model):
     punchNo = models.AutoField(primary_key=True, editable=True) 
     shiftNo = models.CharField(max_length=8)
     empId = models.CharField(max_length=20)
+    employee= models.CharField(max_length=150,null=True)
     punchdate = models.DateField()
     punchTimeIn = models.CharField(max_length=8)
     punchTimeOut = models.CharField(max_length=8)
     latitude  = models.CharField(max_length=30)
     longitude = models.CharField(max_length=30)
-    systemDateTime = models.DateTimeField()
+    systemDateTime = models.DateTimeField(null=True, blank=True, auto_now_add=True)
     isActive = models.CharField(max_length=1,default='Y')
 
     class Meta: 

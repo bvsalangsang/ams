@@ -154,9 +154,7 @@ def shiftTypeSaveUpdate(request):
             return JsonResponse({"Status": "Error", "Message": str(err)})
 
     return JsonResponse({"Status": "Wrong Request"})
- 
 
-  
 def deleteShiftType(request):
     if request.method == "POST":
         try:
