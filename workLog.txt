@@ -92,7 +92,11 @@
 =-urls.py
   * modify path '' to 'dashboard/
 
+=-attendace-log.html 
+  * corrected API url path
+
 ***upload files on github  "dev-250508"***
 ***upload files on github  "dev-250508a"***
+***upload files on github  "dev-250508b"***
 
 
