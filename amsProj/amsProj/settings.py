@@ -98,7 +98,7 @@ DATABASES = {
      # FOR ubuntu
      "default": {
         "ENGINE": 'django.db.backends.mysql',
-        "NAME": 'usep_sdg',
+        "NAME": 'ams',
         "USER": 'sdg',
         "PASSWORD": 'SDMD@ipd101',
         "HOST": 'localhost',
