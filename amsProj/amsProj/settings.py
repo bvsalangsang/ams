@@ -85,7 +85,7 @@ DATABASES = {
     #     'ENGINE': 'django.db.backends.sqlite3',
     #     'NAME': BASE_DIR / 'db.sqlite3',
     # }
-    #for local 
+    # for local 
     #  "default": {
     #     "ENGINE": 'django.db.backends.mysql',
     #     "NAME": 'ams',
