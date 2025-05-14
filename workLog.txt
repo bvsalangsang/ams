@@ -99,4 +99,24 @@
 ***upload files on github  "dev-250508a"***
 ***upload files on github  "dev-250508b"***
 
+'-------------------------------------------------------------------------------
+'=-250514 - 0005 - Version 0.0.5- * BOB *
+'-------------------------------------------------------------------------------
+=- API 
+  * added file 'sqlcommands.py'
+  * added file 'sqlparams.py'
 
+=-sqlparams.py
+  * added 'punchLogParams()'
+
+=-sqlcommands.py
+  * added query 'getPunchLogByDate'
+
+=-views.py 
+  * added function 'getPunchByDate()'
+
+=-urls.py 
+  * added path 'get-punch-by-date'
+
+
+***upload files on github  "dev-250514"***
