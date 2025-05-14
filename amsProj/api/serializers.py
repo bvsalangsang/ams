@@ -10,3 +10,4 @@ class ShiftSerializer(serializers.ModelSerializer):
     class Meta: 
         model = ManShift
         fields  = '__all__'
+

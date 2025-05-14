@@ -1,8 +1,37 @@
+from django.db import connection
 from rest_framework.response import Response 
 from rest_framework import status
 from rest_framework.decorators import api_view
 from amsApp.models import *
+from api.sqlcommands import *
+from api.sqlparams import *
 from .serializers import *
+
+
+@api_view(['GET'])
+def getPunchByDate(request):
+    empId = request.GET.get('empId')
+    punchDate = request.GET.get('punchDate')
+
+    if not empId or not punchDate:
+        return Response({"error": "Missing empId or punchDate"}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        with connection.cursor() as cursor:
+            sql, params = getPunchLogByDate(empId=empId, punchDate=punchDate)
+            cursor.execute(sql, params)
+            row = cursor.fetchone()
+            if row:
+                columns = [col[0] for col in cursor.description]
+                result = dict(zip(columns, row))
+                return Response({"data": result}, status=status.HTTP_200_OK)
+            else:
+                return Response({"data": None}, status=status.HTTP_404_NOT_FOUND)
+
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 @api_view(['GET'])
 def getDataPunch(request):
@@ -31,5 +60,6 @@ def addPunchLog(request):
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 

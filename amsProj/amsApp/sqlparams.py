@@ -15,5 +15,4 @@ def shiftTypeParams():
         "shiftTypeNo": "",
         "shiftType": "",
         "isActive": "",
-
     }
