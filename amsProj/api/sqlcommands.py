@@ -21,7 +21,7 @@ def getPunchLogByDate(empId, punchDate):
                     FROM punch_log 
                     WHERE empId =  %s
                     AND punchDate =  %s
-                    ORDER BY punchDate DESC
+                    ORDER BY punchNo DESC
                     LIMIT 1
                     """
     
