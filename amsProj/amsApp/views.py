@@ -24,12 +24,13 @@ def attJsonList(request):
             "punchNo":row[0],
             "shiftNo":row[1],
             "empId":row[2],
-            "punchdate":row[3],
-            "punchTimeIn":row[4],
-            "punchTimeOut":row[5],
-            "latitude":row[6],
-            "longitude":row[7],
-            "systemDateTime":row[8]
+            "pdsId":row[3],
+            "punchdate":row[4],
+            "punchTimeIn":row[5],
+            "punchTimeOut":row[6],
+            "latitude":row[7],
+            "longitude":row[8],
+            "systemDateTime":row[9]
            }
         jsonResultData.append(tempRes)
     return JsonResponse({"data":list(jsonResultData)},safe=False)

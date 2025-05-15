@@ -38,6 +38,7 @@ class PunchLog(models.Model):
     punchNo = models.AutoField(primary_key=True, editable=True) 
     shiftNo = models.CharField(max_length=8)
     empId = models.CharField(max_length=20)
+    pdsId = models.CharField(max_length=20,null=True)
     employee= models.CharField(max_length=150,null=True)
     punchdate = models.DateField()
     punchTimeIn = models.CharField(max_length=8)

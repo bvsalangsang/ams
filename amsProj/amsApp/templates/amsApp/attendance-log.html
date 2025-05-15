@@ -147,8 +147,10 @@
 <script>
 	$(document).ready(function () {
 		
-		var APIurl = "https://ams.usep.edu.ph/dashboard/api/get-data-punch";
+		//var APIurl = "https://ams.usep.edu.ph/dashboard/api/get-data-punch";
 		
+		var APIurl = "http://127.0.0.1:8000//dashboard/api/get-data-punch";
+
 		fetch(APIurl)
 			.then((response) => response.json())
 			.then((data) => console.log(data))
@@ -169,6 +171,7 @@
 					{ data: "systemDateTime", title: "System Date & Time" },
 					{ data: "shiftNo", title: "Shift No" },
 					{ data: "empId", title: "Employee ID" },
+					{ data: "pdsId", title: "PDS ID" },
 					{ data: "employee", title: "Employee" },
 					{ data: "punchdate", title: "Punch Date" },
 					{ data: "punchTimeIn", title: "Punch Time In" },

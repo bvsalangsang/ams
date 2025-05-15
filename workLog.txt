@@ -122,3 +122,18 @@
 ***upload files on github  "dev-250514"***
 
 ***upload files on github  "dev-250514a"***
+
+'-------------------------------------------------------------------------------
+'=-250515 - 0006 - Version 0.0.6- * BOB *
+'-------------------------------------------------------------------------------
+=-sqlcommands.py (API)
+  * added 'shiftNo' and 'isActive' on where clause
+
+=-models.py (amsApp)
+  * added 'pdsId'
+
+=-views.py 
+  * add column 'pdsId' on 'attJsonList'
+
+
+***upload files on github  "dev-250515"***
