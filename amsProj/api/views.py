@@ -10,15 +10,16 @@ from .serializers import *
 
 @api_view(['GET'])
 def getPunchByDate(request):
-    empId = request.GET.get('empId')
+    pdsId = request.GET.get('pdsId')
     punchDate = request.GET.get('punchDate')
+   
 
-    if not empId or not punchDate:
-        return Response({"error": "Missing empId or punchDate"}, status=status.HTTP_400_BAD_REQUEST)
+    if not pdsId or not punchDate:
+        return Response({"error": "Missing pdsId or punchDate"}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
         with connection.cursor() as cursor:
-            sql, params = getPunchLogByDate(empId=empId, punchDate=punchDate)
+            sql, params = getPunchLogByDate(pdsId=pdsId, punchDate=punchDate)
             cursor.execute(sql, params)
             row = cursor.fetchone()
             if row:
