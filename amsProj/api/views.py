@@ -9,6 +9,17 @@ from .serializers import *
 
 
 @api_view(['GET'])
+def getDataPunch(request):
+    try:
+        punchlog = PunchLog.objects.all()
+        punchserializer = PunchSerializer(punchlog, many=True)
+        return Response(punchserializer.data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+@api_view(['GET'])
 def getPunchByDate(request):
     pdsId = request.GET.get('pdsId')
     punchDate = request.GET.get('punchDate')
@@ -19,7 +30,7 @@ def getPunchByDate(request):
 
     try:
         with connection.cursor() as cursor:
-            sql, params = getPunchLogByDate(pdsId=pdsId, punchDate=punchDate)
+            sql, params = queryGetLogByDate(pdsId=pdsId, punchDate=punchDate)
             cursor.execute(sql, params)
             row = cursor.fetchone()
             if row:
@@ -34,14 +45,50 @@ def getPunchByDate(request):
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+
 @api_view(['GET'])
-def getDataPunch(request):
+def getPunchByPdsId(request):
+    pdsId = request.GET.get('pdsId')
+   
+   
+
+    if not pdsId:
+        return Response({"error": "Missing pdsId"}, status=status.HTTP_400_BAD_REQUEST)
+
     try:
-        punchlog = PunchLog.objects.all()
-        punchserializer = PunchSerializer(punchlog, many=True)
-        return Response(punchserializer.data, status=status.HTTP_200_OK)
+        with connection.cursor() as cursor:
+            sql, params = queryGetPunchLogByPdsId(pdsId=pdsId)
+            cursor.execute(sql, params)
+            rows = cursor.fetchall()
+
+        tempRes = None
+        jsonResultData = []
+
+        if rows:
+            for row in rows:
+                tempRes = {
+                    "punchNo":row[0],
+                    "shiftNo":row[1],
+                    "empId":row[2],
+                    "pdsId":row[3],
+                    "employee":row[4],
+                    "punchdate":row[5],
+                    "punchTimeIn":row[6],
+                    "punchTimeOut":row[7],
+                    "latitude":row[8],
+                    "longitude":row[9],
+                    "systemDateTime":row[10]
+                }
+                jsonResultData.append(tempRes)
+            return Response({"data": jsonResultData}, status=status.HTTP_200_OK)
+        else:
+            return Response({"data": None}, status=status.HTTP_404_NOT_FOUND)
+
+
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 
 
 @api_view(['GET'])
