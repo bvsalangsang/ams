@@ -139,3 +139,15 @@
 ***upload files on github  "dev-250515"***
 
 ***upload files on github  "dev-250515a"***
+
+'-------------------------------------------------------------------------------
+'=-250521 - 0007 - Version 0.0.7- * BOB *
+'-------------------------------------------------------------------------------
+=-sqlcommands.py (API)
+  * added query 'getPunchLogByEmpId'
+
+=-views.py (API)
+  * added function 'getPunchByPdsId'
+
+=-urls.py (API)
+  * added path for 'getPunchByPdsId'

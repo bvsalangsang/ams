@@ -5,7 +5,7 @@ SQL Command for ams (API).
 List of CRUD functions for ams (API).
 """
 
-def getPunchLogByDate(pdsId, punchDate):
+def queryGetLogByDate(pdsId, punchDate):
 
     
     sql = """SELECT punchNo, 
@@ -30,5 +30,29 @@ def getPunchLogByDate(pdsId, punchDate):
     
     params = (pdsId, punchDate)
 
+    return sql,params
+
+
+def queryGetPunchLogByPdsId(pdsId):
+    sql = """SELECT punchNo, 
+                    shiftNo, 
+                    empId, 
+                    pdsId,
+                    employee, 
+                    punchDate, 
+                    punchTimeIn, 
+                    punchTimeOut, 
+                    latitude, 
+                    longitude, 
+                    systemDateTime, 
+                    isActive 
+                    FROM punch_log 
+                    WHERE pdsId =  %s
+                    AND isActive = 'Y'
+                    ORDER BY punchNo DESC
+                    """
+    
+    params = (pdsId,)
+    
     return sql,params
 
