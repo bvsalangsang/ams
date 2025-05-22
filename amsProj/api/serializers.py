@@ -11,3 +11,7 @@ class ShiftSerializer(serializers.ModelSerializer):
         model = ManShift
         fields  = '__all__'
 
+class SytemInfoSerializer(serializers.ModelSerializer):
+    class Meta: 
+        model = sysInfo
+        fields  = '__all__'

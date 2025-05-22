@@ -8,6 +8,7 @@ from api.sqlparams import *
 from .serializers import *
 
 
+# Punch log API
 @api_view(['GET'])
 def getDataPunch(request):
     try:
@@ -16,8 +17,6 @@ def getDataPunch(request):
         return Response(punchserializer.data, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
 
 @api_view(['GET'])
 def getPunchByDate(request):
@@ -43,8 +42,6 @@ def getPunchByDate(request):
 
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
 
 @api_view(['GET'])
 def getPunchByPdsId(request):
@@ -88,19 +85,6 @@ def getPunchByPdsId(request):
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-
-
-
-@api_view(['GET'])
-def getDataShift(request):
-    try:
-        shift = ManShift.objects.all()
-        shiftserializer = ShiftSerializer(shift, many=True)
-        return Response(shiftserializer.data, status=status.HTTP_200_OK)
-    except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
 @api_view(['POST'])
 def addPunchLog(request):
     serializer = PunchSerializer(data=request.data)
@@ -110,4 +94,22 @@ def addPunchLog(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+# Shift API
+@api_view(['GET'])
+def getDataShift(request):
+    try:
+        shift = ManShift.objects.all()
+        shiftserializer = ShiftSerializer(shift, many=True)
+        return Response(shiftserializer.data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+# System Info API
+@api_view(['GET'])
+def getSysInfo(request):
+    try:
+        appInfo = sysInfo.objects.all()
+        appInfoSerializer = SytemInfoSerializer(appInfo, many=True)
+        return Response(appInfoSerializer.data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

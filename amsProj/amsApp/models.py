@@ -52,8 +52,13 @@ class PunchLog(models.Model):
         db_table   = "punch_log"
     
     
-    
+class sysInfo(models.Model):
+    sysId = models.AutoField(primary_key=True, editable=True)
+    function = models.CharField(max_length=50)
+    sysValue = models.CharField(max_length=50)
 
+    class Meta: 
+        db_table   = "sys_info"
 
 
     
