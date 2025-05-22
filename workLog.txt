@@ -151,3 +151,22 @@
 
 =-urls.py (API)
   * added path for 'getPunchByPdsId'
+
+***upload files on github  "dev-250521"***
+
+'-------------------------------------------------------------------------------
+'=-250522 - 0008 - Version 0.0.8- * BOB *
+'-------------------------------------------------------------------------------
+=-models.py (amsApp)
+  * added table 'sysInfo'
+
+=-sqlcommands.py (API)
+  * added query 'queryGetSysInfo'
+
+=-serializers.py (API)
+  * added 'SytemInfoSerializer'
+
+=-views.py 
+  * added function 'getSysInfo'
+
+***upload files on github  "dev-250522"***

@@ -56,3 +56,15 @@ def queryGetPunchLogByPdsId(pdsId):
     
     return sql,params
 
+
+def queryGetSysInfo():
+    sql = """SELECT sysId, 
+                    function, 
+                    sysValue 
+                    FROM sys_info 
+                    WHERE isActive = 'Y'
+                    """
+    
+    params = ()
+    
+    return sql,params
