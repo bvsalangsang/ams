@@ -32,29 +32,26 @@
 					<!-- Attendance Logs -->
 					<div class="card">
 						<div class="card-header">
-							<h3 class="card-title">
+							<!-- <h3 class="card-title">
 								<i class="fas fa-chart-pie mr-1"></i>
 								Event Record
-							</h3>
-							<button class="btn btn-primary float-right" id="addEvent">
-								Add Event
+							</h3> -->
+							<button class="btn bg-gradient-success" id="addEvent">
+							 <i class="fas fa-plus mr-1"></i> Add Event
 							</button>
 						</div>
 						<!-- /.card-header -->
 						<div class="card-body">
 							<table
-								id="exampleTable"
-								class="table table-bordered table-striped"
+								id="event-table"
+								class="table table-bordered"
 							>
 								<thead>
 									<tr>
 										<th>Event No</th>
 										<th>Event Name</th>
 										<th>Event Type</th>
-										<th>Break No</th>
 										<th>Description</th>
-										<th>Start Time</th>
-										<th>End Time</th>
 										<th>Action</th>
 									</tr>
 								</thead>
@@ -72,137 +69,195 @@
 	</section>
 	<!-- /.content -->
 </div>
-{% include 'amsApp/modals/event-modal.html' %}  
-{% endblock %} 
+{% include 'amsApp/modals/event-modal.html' %}
+{% include 'amsApp/modals/del-event-modal.html' %}
+
+{% endblock %}
 {% block scripts %}
+
 <script>
 	$(document).ready(function () {
-		var APIurl = "{% url 'shiftJsonList'%}";
+ 		$('.select2').select2()
+  
+		const dataFetch = "{% url 'eventJsonList' %}";
+    // Fetch sample data for debugging
+		fetch(dataFetch)
+			.then(response => response.json())
+			.then(data => console.log(data))
+			.catch(error => console.error("Error:", error));
 
-		fetch(APIurl)
-			.then((response) => response.json())
-			.then((data) => console.log(data))
-			.catch((error) => console.error("Error:", error));
-
-			let table = $("#exampleTable").DataTable({
-				responsive: true,
-				lengthChange: false,
-				autoWidth: false,
-				ajax: {
-					url: APIurl,
+		// Initialize DataTable
+		const table = $("#event-table").DataTable({
+			responsive: true,
+			lengthChange: true,
+			pageLength: 10,
+			autoWidth: false,
+			lengthMenu: [10, 25, 50, 100],
+			dom:
+		"<'row mb-2'<'col-sm-12 d-flex justify-content-end'f>>" +
+		"<'row'<'col-sm-12'tr>>" +
+		"<'row mt-2'<'col-md-4'l><'col-md-4 d-flex justify-content-center'p><'col-md-4 d-flex justify-content-end'i>>",
+		ajax: {
+				url: dataFetch,
+				dataSrc: "data",
+			},
+			language: {
+				search: "",
+				searchPlaceholder: "Search...",
+			},
+			columns: [
+				{ data: "eventNo", title: "Event No" },
+				{ data: "eventName", title: "Event Name" },
+				{
+					data: "eventType",
+					title: "Event Type",
+					render: data => `<strong>${data}</strong>`,
 				},
-				columns: [
-					{ data: "shiftNo", title: "Event No" },
-					{ data: "shiftName", title: "Event Name" },
-					{ data: "shiftTypeNo", title: "Event Type" },
-					{ data: "breakNo", title: "Break No" },
-					{ data: "description", title: "Description" },
-					{ data: "startTime", title: "Start Time" },
-					{ data: "endTime", title: "End Time" },
-					{
-						data: null,
-						title: "Actions",
-						render: function (data, type, row) {
-							return `
-							<a href="javascript:void(0);" class="editBtn" data-id="${row.shiftNo}" title="Edit">
-								<i class="fa fa-edit" style="color: #33adff; margin-right: 5px;"></i>
-							</a>
-
-							<a href="javascript:void(0);" class="deleteBtn" data-id="${row.shiftNo}" title="Delete">
-								<i class="fas fa-trash" style="color: #c94c4c;"></i>
-							</a>
-						`;
-						},
-					},
-				],
-				dom: "Bfrtip", // 🔹 Ensure buttons are enabled in the DataTable layout
-				buttons: ["copy", "csv", "excel", "pdf", "print", "colvis"],
-			});
-
-			table
-				.buttons()
-				.container()
-				.appendTo("#exampleTable_wrapper .col-md-6:eq(0)");
-
-			// Show modal for adding new event
-			$("#addEvent").click(function () {
-				$("#eventForm")[0].reset();
-				$("#eventModal").modal("show");
-			});
-
-			$("#exampleTable").on("click", ".editBtn", function () {  // Fixed class name
-				let rowData = table.row($(this).parents("tr")).data();
-				if (rowData) {
-					$("#shiftNo").val(rowData.shiftNo);
-					$("#shiftName").val(rowData.shiftName);
-					$("#shiftTypeNo").val(rowData.shiftTypeNo);
-					$("#breakNo").val(rowData.breakNo);
-					$("#description").val(rowData.description);
-					$("#startTime").val(rowData.startTime);
-					$("#endTime").val(rowData.endTime);
-					$("#eventModal").modal("show");
-				} else {
-					console.error("Row data not found");
-				}
-			});
-
-	
-			//save update function  
-			$("#saveEvent").click(function (e) {
-				e.preventDefault();
-				
-				let formData = {
-					shiftNo: $("#shiftNo").val(),
-					shiftName: $("#shiftName").val(),
-					shiftTypeNo: $("#shiftTypeNo").val(),
-					breakNo: $("#breakNo").val(),
-					description: $("#description").val(),
-					startTime: $("#startTime").val(),
-					endTime: $("#endTime").val(),
-					isActive: "Y",
-				};
-
-				$.ajax({
-					type: "POST",
-					url: "/shiftSaveUpdate/", // URL for shiftSaveUpdate in urls.py
-					data: formData,
-					success: function (response) {
-						alert(response.Status);
-						location.reload(); // Refresh after saving
-					},
-					error: function (xhr) {
-						alert("Error: " + xhr.responseText);
-					}
-				});
-			});
-	
-						
+				{ data: "description", title: "Description" },
+				{
+					data: null,
+					title: "Actions",
+					orderable: false,
+					render: (data, type, row) => `
+						<a href="javascript:void(0);" class="editBtn" data-id="${row.shiftNo}" title="Edit">
+							<i class="fa fa-edit text-primary mr-2"></i>
+						</a>
+						<a href="javascript:void(0);" class="deleteBtn" data-id="${row.shiftNo}" title="Delete">
+							<i class="fas fa-trash text-danger"></i>
+						</a>
+					`,
+				},
+			],
 		});
 
-		$(document).on("click", ".deleteBtn", function () {
-			let shiftNo = $(this).data("id"); // Get shift number from button attribute
+		// Move buttons if using DataTables extensions
+		table.buttons().container().appendTo("#event-table_wrapper .col-md-6:eq(0)");
 
-			if (confirm("Are you sure you want to delete this shift?")) {
-				$.ajax({
-					url: "/deleteShiftView/",  // Django URL
-					type: "POST",
-					data: {
-						shiftNo: shiftNo,
-						csrfmiddlewaretoken: "{{ csrf_token }}",  // CSRF protection
-					},
-					success: function (response) {
-						if (response.Status === "Deleted") {
-							alert("Shift deleted successfully!");
-							location.reload();  // Refresh table
-						} else {
-							alert("Error: " + response.Message);
-						}
-					},
-					error: function () {
-						alert("Something went wrong. Please try again.");
-					}
-				});
+		// Global event delegation for all dynamic actions
+		$(document).on("click", function (e) {
+			const target = $(e.target).closest("a");
+
+			// Edit Event Modal
+			if (target.hasClass("editBtn") && target.closest("#event-table").length) {
+				const rowData = table.row(target.closest("tr")).data();
+
+				$("#id_eventNo").val(rowData.eventNo);
+				$("#id_eventName").val(rowData.eventName);
+				$("#id_eventType").val(rowData.eventTypeNo).trigger("change");
+				$("#id_description").val(rowData.description);
+				$(".modal-title-text").text("Update Entry");
+				$(".save-btn-text").text("Update");
+				$("#event-modal").modal("show");
+			}
+
+			// Delete Confirmation Modal
+			else if (target.hasClass("deleteBtn")) {
+				const rowData = table.row(target.closest("tr")).data();
+
+				// Populate modal with data
+				$("#delEventNo").text(rowData.eventNo);
+				$("#delEventName").text(rowData.eventName);
+				$("#delEventType").text(rowData.eventType);
+				$("#delEventDesc").text(rowData.description);
+				$("#deleteEventNo").val(rowData.eventNo);
+
+				// Show delete modal
+				$("#deleteConfirmModal").modal("show");
 			}
 		});
+
+		// Add New Event Button
+		$("#addEvent").click(function () {
+			$("#eventForm")[0].reset();
+			$("#id_eventNo").val("");
+			$(".modal-title-text").text("Add New Entry");
+			$(".save-btn-text").text("Save");
+			$("#event-modal").modal("show");
+		});
+
+		// Save/Update Shift Button
+		$("#saveEvent").click(function (e) {
+			e.preventDefault();
+			
+			const formData = {
+				eventNo: $("#id_eventNo").val(),
+				eventName: $("#id_eventName").val(),
+				eventTypeNo: $("#id_eventType").val(),
+				description: $("#id_description").val(),
+				isActive: "Y",
+			};
+
+			$.ajax({
+				type: "POST",
+				url: "{% url 'eventSaveUpdateParams' %}",
+				data:{ 
+					...formData,
+					csrfmiddlewaretoken: "{{ csrf_token }}",
+				},
+				success: function (response) {
+					// alert(response.Status);
+					// location.reload();
+					if (response.Status == "Saved") {
+								Swal.fire({
+									position: "center",
+									icon: "success",
+									title: "Record Successfully Saved!",
+									showConfirmButton: false,
+									timer: 1500,
+								});
+
+								$(".btn-save").text("Save").attr("disabled", false);
+
+								// $this[0].reset();
+
+								$("#event-table").DataTable().ajax.reload();
+								$("#event-modal").modal("hide");
+							} else {
+								Swal.fire({
+									position: "center",
+									icon: "error",
+									title: "Failed to Save Record!",
+									showConfirmButton: false,
+									timer: 1500,
+								});
+							}
+
+
+					
+				},
+				error: function (xhr) {
+					console.log("Error: " + xhr.responseText);
+				},
+			});
+		});
+
+		// Confirm Delete Button
+		$("#confirmDeleteBtn").click(function () {
+			const delEventNo = $("#deleteEventNo").val();
+		
+			$.ajax({
+				url: "{% url 'deleteEvent' %}",
+				type: "POST",
+				data: {
+					eventNo: delEventNo,
+					csrfmiddlewaretoken: "{{ csrf_token }}",
+				},
+				success: function (response) {
+					if (response.Status === "Deleted") {
+						alert("Shift deleted successfully!");
+						$("#deleteConfirmModal").modal("hide");
+						table.ajax.reload();
+					} else {
+						alert("Error: " + response.Message);
+					}
+				},
+				error: function () {
+					alert("Something went wrong. Please try again.");
+				},
+			});
+		});
+});
+
+
 </script>
 {% endblock %}

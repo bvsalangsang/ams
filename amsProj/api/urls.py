@@ -7,5 +7,6 @@ urlpatterns = [
     path('dashboard/api/add-punch', views.addPunchLog),
     path('dashboard/api/get-punch-by-date/', views.getPunchByDate),
     path('dashboard/api/get-punch-by-id/', views.getPunchByPdsId),
-    path('dashboard/api/get-sysinfo/', views.getSysInfo)
+    path('dashboard/api/get-sysinfo/', views.getSysInfo),
+    path('dashboard/api/get-schedule/', views.getDataSchedule),
 ]

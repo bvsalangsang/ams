@@ -1,0 +1,51 @@
+
+/* dataTables custom styles */
+/* Highlight table headers */
+	#event-table thead th,
+	#event-type-table thead th {
+		background-color: #f0f0f5;
+		font-weight: bold;
+		color: #333;
+	}
+
+	/* Row height and padding */
+	#event-table tbody td {
+		padding-top: 12px;
+		padding-bottom: 12px;
+		vertical-align: middle;
+	}
+
+	/* Sort arrow color */
+	table.dataTable thead .sorting:after,
+	table.dataTable thead .sorting_asc:after,
+	table.dataTable thead .sorting_desc:after {
+		color: #007bff !important;
+	}
+
+	/* Style DataTables search input */
+	.dataTables_filter input {
+		border-radius: 5px;
+		border: 1px solid #ced4da;
+		padding: 5px 10px;
+		outline: none;
+		width: 200px;
+	}
+
+	/* Remove label spacing */
+	.dataTables_filter label {
+		display: flex;
+		justify-content: flex-end;
+		gap: 8px;
+		align-items: center;
+	}
+
+	/* Align info and pagination together */
+	.dataTables_info {
+		display: inline-block;
+		margin-right: 10px;
+		vertical-align: middle;
+	}
+	.dataTables_paginate {
+		display: inline-block;
+		vertical-align: middle;
+	}

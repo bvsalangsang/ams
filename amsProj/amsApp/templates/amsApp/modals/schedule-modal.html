@@ -1,0 +1,179 @@
+<!-- Schedule Modal -->
+<div class="modal fade" id="sched-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <form id="schedForm" autocomplete="off">
+        {% csrf_token %}
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+
+                <!-- Modal Header -->
+                <div class="modal-header bg-gradient-info">
+                    <h4 class="modal-title d-flex align-items-center">
+                        <i class="fas fa-clock mr-2"></i>
+                        <span class="modal-title-text">Schedule Entry</span>
+                    </h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-12">
+
+                            <!-- Schedule ID -->
+                            <div class="form-group">
+                                <label for="id_schedId">Schedule ID</label>
+                                <input type="text" name="schedId" id="id_schedId" class="form-control"  placeholder="Auto-generated ID" />
+                                <small class="text-red text-muted mySpan"></small>
+                            </div>
+                     
+                            <div class="form-group row">
+
+                                   <!-- Event Number -->
+                                <div class="col-sm-6">
+                                    <label for="id_location">Event</label>
+                                    <select
+                                        id="id_location"
+                                        name="location"
+                                        class="form-control"
+                                        data-placeholder="Select Event"
+                                        style="width: 100%"
+                                    >
+                                        <option></option> <!-- for placeholder -->
+                                        {% for event in events %}
+                                        <option value="{{ event.eventNo }}">{{ event.eventName }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <small class="text-red text-muted mySpan"></small>
+                                </div>
+
+
+                                <!-- Location ID -->
+                                <div class="col-sm-6">
+                                    <label for="id_event">Location</label>
+                                    <select
+                                        id="id_event"
+                                        name="event"
+                                        class="form-control"
+                                        data-placeholder="Select Location"
+                                        style="width: 100%"
+                                    >
+                                        <option></option> <!-- for placeholder -->
+                                        {% for loc in locations %}
+                                        <option value="{{ loc.locationId }}">{{ loc.locName }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <small class="text-red text-muted mySpan"></small>
+					           </div>
+                              
+                            </div>
+                           
+                            <!-- Start and End Dates -->
+                            <div class="form-group row">
+                                <div class="col-sm-6">
+                                    <label for="id_startDate">Start Date</label>
+                                    <input type="date" name="startDate" id="id_startDate" class="form-control" />
+                                    <small class="text-red text-muted mySpan"></small>
+                                </div>
+                                <div class="col-sm-6">
+                                    <label for="id_endDate">End Date</label>
+                                    <input type="date" name="endDate" id="id_endDate" class="form-control" />
+                                    <small class="text-red text-muted mySpan"></small>
+                                </div>
+                            </div>
+
+                            <!-- Start/End Time and Grace Periods -->
+                            <div class="form-group row">
+                                <div class="col-sm-6">
+                                    <label for="id_startTime">Start Time</label>
+                                    <input type="time" name="startTime" id="id_startTime" class="form-control" />
+                                    <small class="text-red text-muted mySpan"></small>
+                                </div>
+                                <div class="col-sm-6">
+                                    <label for="id_startGrace">Start Grace (minutes)</label>
+                                    <input type="number" name="startGrace" id="id_startGrace" class="form-control" min="0" />
+                                    <small class="text-red text-muted mySpan"></small>
+                                </div>
+                            </div>
+
+                            <div class="form-group row">
+                                <div class="col-sm-6">
+                                    <label for="id_endTime">End Time</label>
+                                    <input type="time" name="endTime" id="id_endTime" class="form-control" />
+                                    <small class="text-red text-muted mySpan"></small>
+                                </div>
+                                <div class="col-sm-6">
+                                    <label for="id_endGrace">End Grace (minutes)</label>
+                                    <input type="number" name="endGrace" id="id_endGrace" class="form-control" min="0" />
+                                    <small class="text-red text-muted mySpan"></small>
+                                </div>
+                            </div>
+
+                            <!-- Recurrence Type -->
+                            <div class="form-group row">
+                                <div class="col-sm-6">
+                                    <label for="id_recurrenceType">Recurrence Type</label>
+                                    <select name="recurrenceType" id="id_recurrenceType" class="form-control">
+                                        <option value="" selected disabled hidden>Select Recurrence</option>
+                                        <option value="none">None</option>
+                                        <option value="daily">Daily</option>
+                                        <option value="weekly">Weekly</option>
+                                        <option value="monthly">Monthly</option>
+                                    </select>
+                                    <small class="text-red text-muted mySpan"></small>
+                                </div>
+                                <div class="col-sm-6 select2-purple">
+                                        <label for="id_recurrenceDays">Recurrence Days</label>
+                                        <select
+                                            id="id_recurrenceDays"
+                                            name="recurrenceDays"
+                                            class="form-control select2"
+                                            multiple="multiple"
+                                            data-placeholder="Select Recurrence Days"
+                                            data-dropdown-css-class="select2-purple"
+                                            style="width: 100%"
+                                        >
+                                            <option value="Monday">Monday</option>
+                                            <option value="Tuesday">Tuesday</option>
+                                            <option value="Wednesday">Wednesday</option>
+                                            <option value="Thursday">Thursday</option>
+                                            <option value="Friday">Friday</option>
+                                            <option value="Saturday">Saturday</option>
+                                            <option value="Sunday">Sunday</option>
+                                        </select>
+                                        <small class="text-red text-muted mySpan"></small>
+                                </div>
+                              
+                            </div>
+
+                            <!-- Is Recurring -->
+                            <div class="form-group">
+                                <label for="id_isRecurring">Is Recurring?</label>
+                                <select name="isRecurring" id="id_isRecurring" class="form-control">
+                                    <option value="" selected disabled hidden>Select</option>
+                                    <option value="Y">Yes</option>
+                                    <option value="N">No</option>
+                                </select>
+                                <small class="text-red text-muted mySpan"></small>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer bg-light border-top-0 px-4 py-3 justify-content-end rounded-bottom">
+                    <button type="submit" id="saveSched" class="btn btn-success">
+                        <i class="fas fa-save mr-1"></i> <span class="save-btn-text">Save</span>
+                    </button>
+                    <button type="button" class="btn btn-danger mr-2" data-dismiss="modal">
+                        <i class="fas fa-times mr-1"></i> Cancel
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </form>
+</div>
+<!-- /.modal -->

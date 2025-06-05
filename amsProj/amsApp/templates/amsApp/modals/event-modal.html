@@ -1,96 +1,93 @@
-<!-- Add/Edit Modal -->
-<div
-	class="modal fade"
-	id="eventModal"
-	tabindex="-1"
-	aria-labelledby="eventModalLabel"
-	aria-hidden="true"
->
-	<div class="modal-dialog">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h5 class="modal-title" id="eventModalLabel">Event Details</h5>
-				<button
-					type="button"
-					class="close"
-					data-dismiss="modal"
-					aria-label="Close"
-				>
-					<span aria-hidden="true">&times;</span>
-				</button>
-			</div>
-			<div class="modal-body">
-				<form id="eventForm">
-					<input type="hidden" id="shiftNo" name="shiftNo" />
-					<div class="form-group">
-						<label for="shiftName">Event Name</label>
-						<input
-							type="text"
-							class="form-control"
-							id="shiftName"
-							name="shiftName"
-							required
-						/>
-					</div>
-					<div class="form-group">
-						<label for="shiftTypeNo">Event Type</label>
-						<input
-							type="text"
-							class="form-control"
-							id="shiftTypeNo"
-							name="shiftTypeNo"
-							required
-						/>
-					</div>
-					<div class="form-group">
-						<label for="breakNo">Break No</label>
-						<input
-							type="number"
-							class="form-control"
-							id="breakNo"
-							name="breakNo"
-							required
-						/>
-					</div>
-					<div class="form-group">
-						<label for="description">Description</label>
-						<textarea
-							class="form-control"
-							id="description"
-							name="description"
-							required
-						></textarea>
-					</div>
-					<div class="form-group">
-						<label for="startTime">Start Time</label>
-						<input
-							type="time"
-							class="form-control"
-							id="startTime"
-							name="startTime"
-							required
-						/>
-					</div>
-					<div class="form-group">
-						<label for="endTime">End Time</label>
-						<input
-							type="time"
-							class="form-control"
-							id="endTime"
-							name="endTime"
-							required
-						/>
-					</div>
-				</form>
-			</div>
-			<div class="modal-footer">
-				<button type="button" class="btn btn-secondary" data-dismiss="modal">
-					Close
-				</button>
-				<button type="submit" class="btn btn-primary" id="saveEvent">
-					Save Event
-				</button>
-			</div>
-		</div>
-	</div>
+<!-- Add/Edit Event Modal -->
+<div class="modal fade" id="event-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <form id="eventForm" autocomplete="off">
+        {% csrf_token %}
+         <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+
+                <!-- Modal Header -->
+                <div class="modal-header bg-gradient-secondary">
+                    <h4 class="modal-title d-flex align-items-center">
+                        <i class="fas fa-calendar-alt mr-2"></i>
+                        <span class="modal-title-text">Add New Entry</span>
+                    </h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-12">
+
+                            <!-- Event ID Field (Read-Only for Edit) -->
+                            <div class="form-group">
+                                <label for="id_eventNo">Event ID</label>
+                                <input
+                                    type="text"
+                                    name="eventNo"
+                                    id="id_eventNo"
+                                    class="form-control"
+                                    placeholder="Auto-generated or existing ID"
+                                />
+                                <small class="text-red text-muted mySpan"></small>
+                            </div>
+
+                            <!-- Event Name Field -->
+                            <div class="form-group">
+                                <label for="id_eventName">Event Name</label>
+                                {{ form.eventName }}
+                                <small class="text-red text-muted mySpan"></small>
+                            </div>
+
+						<!-- Event Type -->
+						<div class="form-group">
+							<label for="id_eventType">Event Type</label>
+							<div class="col-sm-12">
+								<select
+									id="id_eventType"
+									name="eventType"
+									class="form-control"
+									data-placeholder="Select Event Type"
+									style="width: 100%"
+								>
+									<option></option> <!-- for placeholder -->
+									{% for event in eventList %}
+									<option value="{{ event.eventTypeNo }}">{{ event.eventType }}</option>
+									{% endfor %}
+								</select>
+								<small class="text-red text-muted mySpan"></small>
+							</div>
+						</div>
+                            <!-- Description Field -->
+                            <div class="form-group">
+                                <label for="id_description">Description</label>
+                                {{ form.description }}
+                                <small class="text-red text-muted mySpan"></small>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer bg-light border-top-0 px-4 py-3 justify-content-end rounded-bottom">
+                    <button
+                        type="submit"
+						id="saveEvent" 
+                        class="btn btn-success"
+                        
+                    >
+                        <i class="fas fa-save mr-1"></i> <span class="save-btn-text">Save</span>
+                    </button>
+                    <button type="button"  class="btn btn-danger mr-2" data-dismiss="modal">
+                        <i class="fas fa-times mr-1"></i> Cancel
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </form>
 </div>
+<!-- /.modal -->

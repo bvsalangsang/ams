@@ -112,7 +112,7 @@
 						<!-- /.card-header -->
 						<div class="card-body">
 							<table
-								id="exampleTable"
+								id="attendance-log-table"
 								class="table table-bordered table-striped"
 							>
 								<thead>
@@ -121,12 +121,14 @@
 										<th>System Date & Time</th>
 										<th>Shift No</th>
 										<th>Employee ID</th>
+									    <th>PDS ID</th>
+										<th>Employee</th>
 										<th>Punch Date</th>
-										<th>Shift No</th>
 										<th>Punch Time In</th>
 										<th>Punch Time Out</th>
 										<th>Latitude</th>
 										<th>Longitude</th>
+										
 									</tr>
 								</thead>
 							</table>
@@ -144,7 +146,7 @@
 	<!-- /.content -->
 </div>
 {% endblock %} {% block scripts %}
-<script>
+<!-- <script>
 	$(document).ready(function () {
 		
 		var APIurl = "https://ams.usep.edu.ph/dashboard/api/get-data-punch";
@@ -161,6 +163,13 @@
 				responsive: true,
 				lengthChange: false,
 				autoWidth: false,
+				pageLength: 25,
+				lengthMenu: [25, 50, 100],
+					dom:
+					"<'row mb-2'<'col-sm-12 d-flex justify-content-end'f>>" +
+					"<'row'<'col-sm-12'tr>>" +
+					"<'row mt-2'<'col-md-4'l><'col-md-4 d-flex justify-content-center'p><'col-md-4 d-flex justify-content-end'i>>",
+				
 				ajax: {
 					url: APIurl,
 					type: "GET",
@@ -178,7 +187,6 @@
 					{ data: "punchTimeOut", title: "Punch Time Out" },
 					{ data: "latitude", title: "Latitude" },
 					{ data: "longitude", title: "Longitude" },
-					{ data: "isActive", title: "Active Status" },
 				],
 				dom: "Bfrtip", // 🔹 Ensure buttons are enabled in the DataTable layout
 				buttons: ["copy", "csv", "excel", "pdf", "print", "colvis"],
@@ -191,5 +199,69 @@
 				.appendTo("#exampleTable_wrapper .col-md-6:eq(0)");
 		});
 	});
+</script> -->
+
+
+
+<script>
+	$(document).ready(function () {
+ 		var APIurl = "https://ams.usep.edu.ph/dashboard/api/get-data-punch";
+		
+		// var APIurl = "http://127.0.0.1:8000/dashboard/api/get-data-punch";
+	
+		//const dataFetch = "{% url 'scheduleJsonList' %}";
+    // Fetch sample data for debugging
+			fetch(APIurl)
+			.then((response) => response.json())
+			.then((data) => console.log(data))
+			.catch((error) => console.error("Error:", error));
+
+		// Initialize DataTable
+
+		
+		const table = $("#attendance-log-table").DataTable({
+			responsive: true,
+			lengthChange: true,
+			pageLength: 10,
+			autoWidth: false,
+			lengthMenu: [10, 25, 50, 100],
+			dom:
+				"<'row mb-2'<'col-sm-12 d-flex justify-content-end'f>>" +
+				"<'row'<'col-sm-12'tr>>" +
+				"<'row mt-2'<'col-md-4'l><'col-md-4 d-flex justify-content-center'p><'col-md-4 d-flex justify-content-end'i>>",
+			ajax: {
+				url: APIurl,
+				dataSrc: "",
+			},
+			language: {
+				search: "",
+				searchPlaceholder: "Search...",
+			},
+				columns: [
+					{ data: "punchNo", title: "Punch No" },
+					{ data: "systemDateTime", title: "System Date & Time" },
+					{ data: "eventNo", title: "Event" },
+					{ data: "empId", title: "Employee ID" },
+					{ data: "pdsId", title: "PDS ID" },
+					{ data: "employee", title: "Employee" },
+					{ data: "punchdate", title: "Punch Date" },
+					{ data: "punchTimeIn", title: "Punch Time In" },
+					{ data: "punchTimeOut", title: "Punch Time Out" },
+					{ data: "latitude", title: "Latitude" },
+					{ data: "longitude", title: "Longitude" },
+				],
+				buttons: ["copy", "csv", "excel", "pdf", "print", "colvis"],
+				order: [[1, "desc"]],
+		});
+
+		// Move buttons if using DataTables extensions
+		table.buttons().container().appendTo("#attendance-log-table_wrapper .col-md-6:eq(0)");
+		
+
+});
+
+
 </script>
+
+
 {% endblock %}

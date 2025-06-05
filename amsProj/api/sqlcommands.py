@@ -9,7 +9,7 @@ def queryGetLogByDate(pdsId, punchDate):
 
     
     sql = """SELECT punchNo, 
-                    shiftNo, 
+                    eventNo, 
                     empId, 
                     pdsId,
                     employee, 
@@ -34,23 +34,26 @@ def queryGetLogByDate(pdsId, punchDate):
 
 
 def queryGetPunchLogByPdsId(pdsId):
-    sql = """SELECT punchNo, 
-                    shiftNo, 
-                    empId, 
-                    pdsId,
-                    employee, 
-                    punchDate, 
-                    punchTimeIn, 
-                    punchTimeOut, 
-                    latitude, 
-                    longitude, 
-                    systemDateTime, 
-                    isActive 
-                    FROM punch_log 
-                    WHERE pdsId =  %s
-                    AND isActive = 'Y'
-                    ORDER BY punchNo DESC
-                    """
+    sql = """
+            SELECT pch.punchNo, 
+            evt.eventName, 
+            pch.empId, 
+            pch.pdsId,
+            pch.employee, 
+            pch.punchDate, 
+            pch.punchTimeIn, 
+            pch.punchTimeOut, 
+            pch.latitude, 
+            pch.longitude, 
+            pch.systemDateTime, 
+            pch.isActive 
+            FROM punch_log pch
+            LEFT JOIN man_event evt ON pch.eventNo = evt.eventNo
+            WHERE pch.pdsId =  %s
+            AND pch.isActive = 'Y'
+            ORDER BY punchNo DESC
+                    
+         """
     
     params = (pdsId,)
     
@@ -68,3 +71,32 @@ def queryGetSysInfo():
     params = ()
     
     return sql,params
+
+
+def queryGetSchedule():
+    sql = """
+             SELECT sch.schedId,
+                loc.locName,
+                evt.eventNo,
+                evt.eventName,
+                sch.startDate,
+                sch.endDate,
+                sch.startTime,
+                sch.startGrace,
+                sch.endTime,
+                sch.endGrace,
+                sch.recurrenceType,
+                sch.recurrenceDays,
+                sch.dateCreated,
+                sch.isRecurring,
+                sch.isSet,
+                sch.isActive
+                FROM schedule sch
+                LEFT JOIN man_location loc ON sch.locationId = loc.locationId
+                LEFT JOIN man_event evt ON sch.eventNo = evt.eventNo
+                WHERE sch.isActive = 'Y' AND isSet = 'Y'
+          """
+    params = ()
+    return sql, params   
+
+    
