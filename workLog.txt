@@ -170,3 +170,145 @@
   * added function 'getSysInfo'
 
 ***upload files on github  "dev-250522"***
+
+
+'-------------------------------------------------------------------------------
+'=-250527 - 0009 - Version 0.0.9- * BOB *
+'-------------------------------------------------------------------------------
+=-models.py (amsApp)
+  * added model 'ManEvent'
+  * added model 'ManEventType'
+  * added model 'ManLocation'
+  * added model 'ManLocationDet'
+
+=-sqlcommands.py (amsApp)
+  * added query 'fetchEvent'
+  * added query 'saveUpdateEvent'
+  * added query 'deleteEvent'
+
+'-------------------------------------------------------------------------------
+'=-250528 - 0010 - Version 0.0.10- * BOB *
+'-------------------------------------------------------------------------------
+=-base.html 
+  * added sidebar menu 'Event' with dropdowns
+  * rename 'adminlte' to  'AMS v1.0'
+  * added logo 
+
+=-modals (folder)
+  * modify event-modal: can handle both add and Edit
+  * added 'del-even-modal'
+
+=-event.html 
+  * fixing javascripts (enhanced)
+
+=-sqlcommands.py (amsApp)
+  * updated query on 'fetchEvent'
+
+=-views.py (amsApp)
+  * added function 'eventSaveUpdateParams'
+
+'-------------------------------------------------------------------------------
+'=-250529 - 0011 - Version 0.0.11- * BOB *
+'-------------------------------------------------------------------------------
+=-sqlcommands.py (amsApp)
+  * added query 'fetchQueryEventType'
+  * added query 'saveUpdateQueryEventType'
+  * added query 'delQueryEventType'
+  * added query  'fetchQueryLocation'
+  * added query 'saveUpdateQuerySchedule'
+
+=-views.py (amsApp)
+  * added function 'deleteEvent'
+  * added function 'eventTypeView'
+  * added function 'eventTypeJsonList'
+  * added function 'deleteEventType'
+  * added function 'scheduleView'
+  * added function 'scheduleJsonList'
+  * added function 'scheduleSaveUpdate' *note: please check
+
+=-forms.py (amsApp)
+  * added form 'EventTypeForm'
+  * added form 'scheduleForm'
+
+=-urls.py (amsApp)
+  * added path 'eventTypeView'
+  * added path 'eventTypeJsonList'
+  * added path 'eventTypeSaveUpdate'
+  * added path 'deleteEventType'
+  * added path 'scheduleView'
+  * added path 'scheduleJsonList'
+
+=-html  
+  * added html 'del-event-type.html
+
+=-sqlparams.py (amsApp)
+  * added parameter 'scheduleParams'
+
+=-models.py (amsApp)
+  * added model 'ManSchedule'
+
+'-------------------------------------------------------------------------------
+'=-250530 - 0012 - Version 0.0.12- * BOB *
+'-------------------------------------------------------------------------------
+=-models.py (amsApp)
+  * added 'isSet' default to 'N'
+
+=-event-type-modal.html 
+  * modify code to match on model 'ManSchedule'
+
+'-------------------------------------------------------------------------------
+'=-250602 - 0013 - Version 0.0.13- * BOB *
+'-------------------------------------------------------------------------------
+=-sqlcommands.py 
+  * added query 'fetchQuerySchedeuleBySet'
+
+=-set-schedule.html 
+  * added html file
+  * added scripts
+
+'-------------------------------------------------------------------------------
+'=-250603 - 0014 - Version 0.0.14- * BOB *
+'-------------------------------------------------------------------------------
+=-views.py 
+  * added view 'locationView'
+  * added view 'setScheduleView'
+  * added view 'setSchedule'
+
+=-urls.py
+  * added path 'locationView'
+
+=-sqlcommands.py
+  * added query 'delQuerySchedule'
+  * added query 'setSchedule'
+
+'-------------------------------------------------------------------------------
+'=-250604 - 0015 - Version 0.0.15- * BOB *
+'-------------------------------------------------------------------------------
+=-views.py (API)
+  * added api link 'getDataSchedule'
+
+=-serializers.py (API)
+  * added serializer 'ScheduleSerializer'
+
+=-urls.py (API)
+  * added path 'getDataSchedule'
+
+=-sqlcommands.py 
+  * updated code on 'queryGetPunchLogByPdsId' joining man_event table
+
+
+'-------------------------------------------------------------------------------
+'=-250605 - 0016 - Version 0.0.16- * BOB *
+'-------------------------------------------------------------------------------
+=-models.py (amsApp)
+  * 'PunchLog' - change 'shiftNo' to 'eventNo'
+
+=-views.py (API)
+  * 'getPunchByPdsId' change 'shiftNo' to 'event'
+
+***upload files on github  "dev-250605"***
+
+
+
+
+

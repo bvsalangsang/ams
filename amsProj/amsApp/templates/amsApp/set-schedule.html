@@ -1,0 +1,329 @@
+{% extends 'amsApp/base.html' %} {% block content %}
+<div class="content-wrapper">
+	<!-- Content Header (Page header) -->
+	<div class="content-header">
+		<div class="container-fluid">
+			<div class="row mb-2">
+				<div class="col-sm-12">
+					<div class="alert alert-info alert-dismissible mb-0">
+						<h5><i class="icon fas fa-info"></i> Schedule Manager!</h5>
+						Info alert preview. This alert is dismissable.
+               		 </div>
+				</div>
+			
+				<!-- /.col -->
+			</div>
+			<!-- /.row -->
+		</div>
+		<!-- /.container-fluid -->
+	</div>
+	<!-- /.content-header -->
+
+	<!-- Main content -->
+	<section class="content">
+		<div class="container-fluid">
+			<!-- Main row -->
+			<div class="row">
+				<!-- Left col -->
+				<section class="col-lg-6 connectedSortable">
+					<!-- Attendance Logs -->
+					<div class="card">
+						<div class="card-header bg-gradient-success">
+							<h3 class="card-title">
+								<i class="fas fa-chart-pie mr-1"></i>
+								Event Record
+							</h3>
+						</div>
+						<div class="card-body">
+						<table id="event-table" class="table table-bordered">
+							<thead>
+								<tr>
+									<th>Schedule ID</th>
+									<th>Location</th>
+									<th>Event</th>
+									<th>Status</th>
+									<th>Action</th>
+								</tr>
+							</thead>
+						</table>
+						</div>
+						<!-- /.card-body -->
+					</div>
+					<!-- /.card -->
+				</section>
+				<!-- /.Left col -->
+				
+				<section class="col-lg-6 connectedSortable">
+					<div class="card">
+						<div class="card-body" id="schedule-details">
+							<p class="text-muted">Click "View" to see schedule details.</p>
+						</div>
+					</div>
+					
+				</section>
+				
+
+		
+			</div>
+			<!-- /.row (main row) -->
+		</div>
+		<!-- /.container-fluid -->
+	</section>
+
+	<!-- /.content -->
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmToggleModal" tabindex="-1" role="dialog" aria-labelledby="confirmToggleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-warning">
+        <h5 class="modal-title" id="confirmToggleModalLabel"><i class="fas fa-exclamation-triangle mr-2"></i>Confirm Status Change</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" id="confirmToggleModalBody">
+        Are you sure you want to change the schedule status?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="cancelToggleBtn" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="confirmToggleBtn">Yes, Change</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include 'amsApp/modals/event-modal.html' %}
+{% include 'amsApp/modals/schedule-modal.html' %}
+
+{% endblock %}
+{% block scripts %}
+<script>
+$(document).ready(function () {
+
+	$('#id_recurrenceDays').select2();
+
+	const dataFetch = "{% url 'scheduleJsonList' %}";
+
+	fetch(dataFetch)
+		.then(response => response.json())
+		.then(responseData => {
+			const allData = responseData.data;
+			console.log("All data:", allData);
+			initTable("#event-table", allData); // Combine all data
+		})
+		.catch(error => console.error("Error:", error));
+
+	function initTable(selector, dataSet) {
+		if ($.fn.dataTable.isDataTable(selector)) {
+			$(selector).DataTable().clear().rows.add(dataSet).draw();
+			return;
+		}
+
+		$(selector).DataTable({
+			data: dataSet,
+			responsive: true,
+			lengthChange: true,
+			pageLength: 10,
+			autoWidth: false,
+			lengthMenu: [10, 25, 50, 100],
+			dom:
+				"<'row mb-2'<'col-sm-12 d-flex justify-content-end'f>>" +
+				"<'row'<'col-sm-12'tr>>" +
+				"<'row mt-2'<'col-md-4'l><'col-md-4 d-flex justify-content-center'p><'col-md-4 d-flex justify-content-end'i>>",
+			language: {
+				search: "",
+				searchPlaceholder: "Search...",
+			},
+			columns: [
+				{ data: "schedId" },
+				{ data: "locName" },
+				{ data: "eventName" },
+				{
+					data: "isSet",
+					render: data => {
+						if (data === "Y") {
+							return `<span class="badge badge-success px-3 py-1" style="font-size:1em;border-radius:12px;">
+								<i class="fas fa-check-circle mr-1"></i>Scheduled
+							</span>`;
+						} else {
+							return `<span class="badge badge-secondary px-3 py-1" style="font-size:1em;border-radius:12px;">
+								<i class="fas fa-clock mr-1"></i>Unscheduled
+							</span>`;
+						}
+					},
+				},
+				{
+					data: null,
+					orderable: false,
+					render: function(data, type, row) {
+						return `
+							<button class="btn btn-sm btn-outline-primary view-schedule-btn" data-schedule='${JSON.stringify(row)}'>
+								<i class="fas fa-eye mr-1"></i>View
+							</button>
+						`;
+					}
+				}
+
+			],
+		});
+	}
+
+
+
+$(document).on("click", ".view-schedule-btn", function () {
+    const schedule = $(this).data("schedule");
+    const isScheduled = schedule.isSet === "Y";
+    const statusBadge = isScheduled
+        ? `<span class="badge badge-success px-3 py-2" style="font-size:1em;border-radius:12px;">
+                <i class="fas fa-check-circle mr-1"></i>Scheduled
+            </span>`
+        : `<span class="badge badge-secondary px-3 py-2" style="font-size:1em;border-radius:12px;">
+                <i class="fas fa-clock mr-1"></i>Unscheduled
+            </span>`;
+
+  const detailsHTML = `
+    <div class="card shadow-sm border-0">
+        <div class="card-body bg-light">
+            <div class="d-flex align-items-center mb-3 justify-content-between">
+                <div class="d-flex align-items-center">
+                    <span style="font-size:1.2em;">
+                        <i class="fas fa-calendar-alt mr-2"></i><strong>Schedule Details</strong>
+                    </span>
+                </div>
+               <div class="custom-control custom-switch d-flex align-items-center" style="margin-bottom:0;">
+					<input type="checkbox" class="custom-control-input schedule-toggle-switch" id="scheduleToggleSwitch"
+						${isScheduled ? "checked" : ""} data-schedid="${schedule.schedId}">
+					<label class="custom-control-label d-flex align-items-center" for="scheduleToggleSwitch" id="toggleSwitchLabel" style="cursor:pointer;">
+						<span id="statusBadge" class="ml-2 badge ${isScheduled ? "badge-success" : "badge-secondary"} px-3 py-2" style="font-size:1em;border-radius:12px;">
+							<i id="statusIcon" class="fas ${isScheduled ? "fa-check-circle" : "fa-clock"} mr-1"></i>
+							<span id="statusText">${isScheduled ? "Scheduled" : "Unscheduled"}</span>
+						</span>
+					</label>
+				</div>
+            </div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item"><i class="fas fa-hashtag text-primary mr-2"></i><strong>Schedule ID:</strong> ${schedule.schedId}</li>
+                <li class="list-group-item"><i class="fas fa-map-marker-alt text-success mr-2"></i><strong>Location:</strong> ${schedule.locName}</li>
+                <li class="list-group-item"><i class="fas fa-bolt text-warning mr-2"></i><strong>Event:</strong> ${schedule.eventName}</li>
+                <li class="list-group-item"><i class="fas fa-calendar-day text-info mr-2"></i><strong>Start Date:</strong> ${schedule.startDate || '—'}</li>
+                <li class="list-group-item"><i class="fas fa-calendar-check text-info mr-2"></i><strong>End Date:</strong> ${schedule.endDate || '—'}</li>
+                <li class="list-group-item"><i class="fas fa-clock text-secondary mr-2"></i><strong>Start Time:</strong> ${schedule.startTime || '—'}</li>
+                <li class="list-group-item"><i class="fas fa-hourglass-start text-secondary mr-2"></i><strong>Start Grace:</strong> ${schedule.startGrace || '—'}</li>
+                <li class="list-group-item"><i class="fas fa-clock text-secondary mr-2"></i><strong>End Time:</strong> ${schedule.endTime || '—'}</li>
+                <li class="list-group-item"><i class="fas fa-hourglass-end text-secondary mr-2"></i><strong>End Grace:</strong> ${schedule.endGrace || '—'}</li>
+                <li class="list-group-item"><i class="fas fa-calendar-plus text-primary mr-2"></i><strong>Date Created:</strong> ${schedule.dateCreated || '—'}</li>
+            </ul>
+        </div>
+    </div>
+`;
+
+$("#schedule-details").html(detailsHTML);
+
+
+});
+
+
+let pendingToggle = null;
+
+$("#schedule-details").on("change", ".schedule-toggle-switch", function (e) {
+    // Prevent immediate toggle
+    e.preventDefault();
+    e.stopImmediatePropagation();
+
+    // Save context for confirmation
+    pendingToggle = {
+        $switch: $(this),
+        checked: $(this).is(":checked")
+    };
+
+    // Set modal message
+    const newStatus = pendingToggle.checked ? "Scheduled" : "Unscheduled";
+    $("#confirmToggleModalBody").html(
+        `Are you sure you want to change the schedule status to <strong>${newStatus}</strong>?`
+    );
+
+    // Show modal
+    $("#confirmToggleModal").modal("show");
+});
+
+// Handle confirmation
+$("#confirmToggleBtn").on("click", function () {
+    if (!pendingToggle) return;
+
+    const $switch = pendingToggle.$switch;
+    const checked = pendingToggle.checked;
+    const $badge = $("#statusBadge");
+    const $icon = $("#statusIcon");
+    const $text = $("#statusText");
+    const isSet = checked ? "Y" : "N";
+    const schedId = $switch.data("schedid");
+    const setScheduleUrl = "{% url 'setSchedule' %}";
+
+    // Update UI
+    $switch.prop("checked", checked);
+    if (checked) {
+        $badge.removeClass("badge-secondary").addClass("badge-success");
+        $icon.removeClass("fa-clock").addClass("fa-check-circle");
+        $text.text("Scheduled");
+    } else {
+        $badge.removeClass("badge-success").addClass("badge-secondary");
+        $icon.removeClass("fa-check-circle").addClass("fa-clock");
+        $text.text("Unscheduled");
+    }
+
+    // AJAX call to backend with isSet value
+	$.ajax({
+		url: setScheduleUrl,
+		type: "POST",
+		data: {
+			schedId: schedId,
+			isSet: isSet,
+			csrfmiddlewaretoken: "{{ csrf_token }}"
+		},
+		success: function(response) {
+			if (response.Status !== "Set Schedule") {
+				alert(response.Message || "Failed to update schedule status.");
+			}
+			// Reload the event-table DataTable
+			if ($.fn.dataTable.isDataTable("#event-table")) {
+					fetch(dataFetch)
+						.then(response => response.json())
+						.then(responseData => {
+							const allData = responseData.data;
+							$('#event-table').DataTable().clear().rows.add(allData).draw();
+						});
+				}
+				Swal.fire({
+					position: "center",
+					icon: "success",
+					title: "Schedule Updated Successfully!",
+					showConfirmButton: false,
+					timer: 1500,
+				});
+		},
+		error: function(xhr, status, error) {
+			alert("An error occurred: " + error);
+		}
+	});
+    // Hide modal and clear pending
+    $("#confirmToggleModal").modal("hide");
+    pendingToggle = null;
+});
+
+// If cancelled, revert the switch
+$("#confirmToggleModal").on("hidden.bs.modal", function () {
+    if (pendingToggle) {
+        // Revert the switch to its previous state
+        pendingToggle.$switch.prop("checked", !pendingToggle.checked);
+        pendingToggle = null;
+    }
+});
+
+
+});
+
+
+</script>
+{% endblock %}

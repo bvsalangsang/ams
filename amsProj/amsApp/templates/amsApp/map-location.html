@@ -1,0 +1,104 @@
+{% extends 'amsApp/base.html' %} {% block content %}
+<div class="content-wrapper">
+	<!-- Content Header (Page header) -->
+	<div class="content-header">
+		<div class="container-fluid">
+			<div class="row mb-2">
+				<div class="col-sm-6">
+					<h1 class="m-0">Map Location Manager</h1>
+				</div>
+				<!-- /.col -->
+			</div>
+			<!-- /.row -->
+		</div>
+		<!-- /.container-fluid -->
+	</div>
+	<!-- /.content-header -->
+
+	<!-- Main content -->
+	<section class="content">
+		<div class="container-fluid">
+			<!-- Main row -->
+		
+			<div class="row">
+				<section class="col-lg-12">
+				 <div class="card">
+					<div class="card-header bg-gradient-primary">
+						<h3 class="card-title">
+							<i class="fas fa-calendar-alt mr-1"></i>
+							Set Schedule	
+					</div>
+					 <div class="card-body">
+						<h2>Select Location on Map</h2>
+						<form method="POST">
+							{% csrf_token %}
+							{{ form.as_p }}
+							<div id="map"></div>
+							<button type="submit">Save Location</button>
+						</form>
+					 </div>
+
+				</section>
+			</div>
+		</div>
+		<!-- /.container-fluid -->
+	</section>
+	<!-- /.content -->
+</div>
+{% include 'amsApp/modals/event-modal.html' %}
+{% include 'amsApp/modals/schedule-modal.html' %}
+
+{% endblock %}
+{% block scripts %}
+  <style>
+        #map { height: 500px; }
+    </style>
+
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+   <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+ <script>
+        var map = L.map('map').setView([7.1907, 125.4553], 13); // Davao
+
+        // Load tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        // Add search bar
+        L.Control.geocoder({
+            defaultMarkGeocode: true
+        }).addTo(map);
+
+        // Draw control
+        var drawnItems = new L.FeatureGroup();
+        map.addLayer(drawnItems);
+
+        var drawControl = new L.Control.Draw({
+            draw: {
+                polygon: true,
+                polyline: false,
+                rectangle: false,
+                circle: false,
+                marker: false,
+                circlemarker: false,
+            },
+            edit: {
+                featureGroup: drawnItems
+            }
+        });
+        map.addControl(drawControl);
+
+        // On draw
+        map.on('draw:created', function (e) {
+            var layer = e.layer;
+            drawnItems.clearLayers();  // Only one area at a time
+            drawnItems.addLayer(layer);
+            var geojson = layer.toGeoJSON();
+            var geojsonStr = JSON.stringify(geojson.geometry);
+            document.getElementById("id_area").value = geojsonStr;
+        });
+    </script>
+
+{% endblock %}

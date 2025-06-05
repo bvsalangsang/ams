@@ -1,0 +1,27 @@
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-gradient-danger text-white">
+        <h5 class="modal-title" id="deleteConfirmModalLabel">Confirm Deletion</h5>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete the following shift?</p>
+        <ul class="list-group">
+          <li class="list-group-item"><strong>Event No:</strong> <span id="delEventNo"></span></li>
+          <li class="list-group-item"><strong>Name:</strong> <span id="delEventName"></span></li>
+          <li class="list-group-item"><strong>Type:</strong> <span id="delEventType"></span></li>
+          <li class="list-group-item"><strong>Description:</strong> <span id="delEventDesc"></span></li>
+        </ul>
+        <input type="hidden" id="deleteEventNo">
+      </div>
+      <div class="modal-footer">
+        <button id="confirmDeleteBtn" type="button" class="btn btn-danger">Delete</button>
+        <button type="button" class="btn bg-gradient-secondary  mr-2" data-dismiss="modal">
+                    <i class="fas fa-times mr-1"></i> Cancel
+        </button>
+          
+      </div>
+    </div>
+  </div>
+</div>

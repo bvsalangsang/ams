@@ -15,3 +15,8 @@ class SytemInfoSerializer(serializers.ModelSerializer):
     class Meta: 
         model = sysInfo
         fields  = '__all__'
+
+class ScheduleSerializer(serializers.ModelSerializer):
+    class Meta: 
+        model = ManSchedule
+        fields  = '__all__'
