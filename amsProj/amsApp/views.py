@@ -154,6 +154,7 @@ def shiftTypeSaveUpdate(request):
 
     return JsonResponse({"Status": "Wrong Request"})
 
+@csrf_exempt
 def deleteShiftType(request):
     if request.method == "POST":
         try:
@@ -271,6 +272,7 @@ def eventTypeJsonList(request):
         jsonResultData.append(tempRes)
     return JsonResponse({"data":list(jsonResultData)},safe=False)
 
+@csrf_exempt
 def eventTypeSaveUpdate(request):
     if request.method == "POST":
         try:
@@ -296,7 +298,7 @@ def eventTypeSaveUpdate(request):
             return JsonResponse({"Status": "Error", "Message": str(err)})
     else:
         return JsonResponse({"Status": "Wrong Request"})
-    
+@csrf_exempt
 def deleteEventType(request):
     if request.method == "POST":
         try:
@@ -355,6 +357,7 @@ def scheduleJsonList(request):
         jsonResultData.append(tempRes)
     return JsonResponse({"data":list(jsonResultData)},safe=False)
 
+@csrf_exempt
 def scheduleSaveUpdate(request):
     if request.method != "POST":
         return JsonResponse({"Status": "Wrong Request"})
@@ -413,6 +416,7 @@ def scheduleSaveUpdate(request):
 def setScheduleView(request):
     return render(request, 'amsApp/set-schedule.html')
 
+@csrf_exempt
 def setSchedule(request):
     if request.method == "POST":
         try:
