@@ -305,8 +305,9 @@
 
 =-views.py (API)
   * 'getPunchByPdsId' change 'shiftNo' to 'event'
+  * added '@csrf_exempt' on all saveUpdates functions
 
-***upload files on github  "dev-250605"***
+***upload files on github  "dev-250605a"***
 
 
 
