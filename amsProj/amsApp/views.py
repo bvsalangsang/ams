@@ -14,7 +14,7 @@ def attendanceLogs(request):
 
 def attJsonList(request):
     with connection.cursor() as cursor:
-        cursor.execute(fetchAttLogs())
+        cursor.execute(fecthAttendanceLogs())
         rows = cursor.fetchall()
 
     tempRes = None
@@ -23,15 +23,17 @@ def attJsonList(request):
     for row in rows:
         tempRes = {
             "punchNo":row[0],
-            "shiftNo":row[1],
+            "eventName":row[1],
             "empId":row[2],
             "pdsId":row[3],
-            "punchdate":row[4],
-            "punchTimeIn":row[5],
-            "punchTimeOut":row[6],
-            "latitude":row[7],
-            "longitude":row[8],
-            "systemDateTime":row[9]
+            "employee":row[4],
+            "office":row[5],
+            "punchdate":row[6],
+            "punchTimeIn":row[7],
+            "punchTimeOut":row[8],
+            "latitude":row[9],
+            "longitude":row[10],
+            "systemDateTime":row[11]
            }
         jsonResultData.append(tempRes)
     return JsonResponse({"data":list(jsonResultData)},safe=False)
@@ -436,8 +438,6 @@ def setSchedule(request):
             return JsonResponse({"Status": "Error", "Message": str(err)})
 
     return JsonResponse({"Status": "Wrong Request"})
-
-
 
 #location
 def locationView(request):
