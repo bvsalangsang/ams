@@ -12,6 +12,27 @@ def fetchAttLogs():
    
    return sql
 
+def fecthAttendanceLogs():
+    sql = """
+        SELECT pch.punchNo, 
+               evt.eventName, 
+               pch.empId, 
+               pch.pdsId,
+               pch.employee, 
+               pch.office,
+               pch.punchDate, 
+               pch.punchTimeIn, 
+               pch.punchTimeOut, 
+               pch.latitude, 
+               pch.longitude, 
+               pch.systemDateTime, 
+               pch.isActive
+              FROM punch_log pch
+              LEFT JOIN man_event evt ON pch.eventNo = evt.eventNo
+              WHERE pch.isActive = 'Y'
+              ORDER BY pch.punchNo DESC
+          """
+    return sql
 
 #shift
 def fetchShift():

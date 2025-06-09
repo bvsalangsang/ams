@@ -309,7 +309,19 @@
 
 ***upload files on github  "dev-250605a"***
 
+'-------------------------------------------------------------------------------
+'=-250609 - 0017 - Version 0.0.17- * BOB *
+'-------------------------------------------------------------------------------
+=-sqlcommands.py (amsApp)
+  * added query 'fecthAttendanceLogs'
 
+=-models.py (amsApp)
+  * added column 'officeId' and 'office' on 'PunchLog'
+
+***upload files on github  "dev-250609"***
+
+
+ 
 
 
 

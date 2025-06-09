@@ -46,6 +46,8 @@ class PunchLog(models.Model):
     punchTimeOut = models.CharField(max_length=8)
     latitude  = models.CharField(max_length=30)
     longitude = models.CharField(max_length=30)
+    officeId = models.CharField(max_length=10, null=True, blank=True)
+    office = models.CharField(max_length=400, null=True, blank=True)
     systemDateTime = models.DateTimeField(null=True, blank=True, auto_now_add=True)
     isActive = models.CharField(max_length=1,default='Y')
 
