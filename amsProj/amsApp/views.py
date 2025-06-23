@@ -412,8 +412,8 @@ def scheduleSaveUpdate(request):
         schedule["schedId"] = get_post("schedId")
         schedule["locationId"] = get_post("locationId")
         schedule["eventNo"] = get_post("eventNo")
-        schedule["startDate"] = get_post("startDate") or "0000-00-00"
-        schedule["endDate"] = get_post("endDate") or "0000-00-00"
+        schedule["startDate"] = get_post("startDate") 
+        schedule["endDate"] = get_post("endDate") 
         schedule["startTime"] = get_post("startTime") or "00:00"
         schedule["startGrace"] = get_post("startGrace") or "00"
         schedule["endTime"] = get_post("endTime") or "00:00"
