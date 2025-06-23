@@ -5,7 +5,10 @@ urlpatterns = [
     path('dashboard/', dashboard, name='dashboard'),
     path('dashboard/attendance-log/', attendanceLogs, name='attendanceLogs'),
     path('dashboard/attJsonList/', attJsonList, name='attJsonList'),
+    path('dashboard/attJsonListByOfficeRange/', attJsonListByOfficeRange, name='attJsonListByOfficeRange'),
+    path('dashboard/attendance-by-office/', attendanceByOfficeView, name='attendanceByOfficeView'),
     
+
     #shift
     # path('dashboard/event/', shiftView, name='shiftView'),
     path('dashboard/shiftJsonList/', shiftJsonList, name='shiftJsonList'),
@@ -36,10 +39,13 @@ urlpatterns = [
     
     #location
     path('dashboard/map-location/', locationView, name='locationView'),
+    path('dashboard/locationJsonList/', locationJsonList, name='locationJsonList'),
+    path('dashboard/locationSaveUpdate/', saveLocation, name='saveLocation'),
 
     #Control Panel
     path('dashboard/set-schedule/', setScheduleView, name='setScheduleView'),
     path('dashboard/setSchedule/', setSchedule, name='setSchedule'),      
 
-
+    #print
+    path('dashboard/print-logs/', printView, name='printView'),
 ] 

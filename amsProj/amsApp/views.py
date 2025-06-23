@@ -2,6 +2,8 @@ from django.db import connection
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
+from collections import defaultdict
+import json
 from .sqlcommands import * 
 from .sqlparams import *
 from .forms import *    
@@ -38,6 +40,42 @@ def attJsonList(request):
         jsonResultData.append(tempRes)
     return JsonResponse({"data":list(jsonResultData)},safe=False)
 
+def attJsonListByOfficeRange(request):
+    start_date = request.GET.get("start_date") or request.POST.get("start_date")
+    end_date = request.GET.get("end_date") or request.POST.get("end_date")
+    if not start_date or not end_date:
+        return JsonResponse({"Status": "Error", "Message": "Missing start_date or end_date"}, status=400)
+
+    with connection.cursor() as cursor:
+        cursor.execute(fetchAttendanceLogsByDateRange(), [start_date, end_date])
+        rows = cursor.fetchall()
+
+    office_dict = defaultdict(lambda: defaultdict(list))
+    for row in rows:
+        office = row[5] or "Unknown"
+        emp_id = str(row[2]).strip()
+        employee = str(row[4]).strip()
+        emp_key = f"{emp_id}|{employee}"
+        log = {
+            "punchdate": row[6],
+            "punchTimeIn": row[7],
+            "punchTimeOut": row[8],
+            "latitude": row[9],
+            "longitude": row[10],
+            "punchNo": row[0],
+            "eventName": row[1],
+            "pdsId": row[3],
+            "systemDateTime": row[12],
+            "officeId": row[11],
+            "isActive": row[13],
+        }
+        office_dict[office][emp_key].append(log)
+    result = {office: dict(emp_logs) for office, emp_logs in office_dict.items()}
+    print(json.dumps(result, indent=2, default=str))  # Debug
+    return JsonResponse(result, safe=False)
+
+def attendanceByOfficeView(request):
+    return render(request, 'amsApp/attendance.html')
 
 #shift 
 @csrf_exempt
@@ -319,14 +357,12 @@ def deleteEventType(request):
             return JsonResponse({"Status": "Error", "Message": str(err)})
 
     return JsonResponse({"Status": "Wrong Request"})
-
-
  
 #schedule
 def scheduleView(request):
     form = ScheduleForm()
     events = ManEvent.objects.raw(fetchQueryEvent())
-    locations = ManLocation.objects.raw(fetchQueryLocation())
+    locations = ManLocation.objects.raw(fetchQueryLocationOnly())
     return render(request, 'amsApp/schedule.html', {'form':form, 'events':events, 'locations':locations})
 
 def scheduleJsonList(request):
@@ -441,4 +477,66 @@ def setSchedule(request):
 
 #location
 def locationView(request):
-    return render(request, 'amsApp/map-location.html')
+    mapForm = LocationForm()
+    return render(request, 'amsApp/map-location.html',{'mapForm':mapForm})
+
+def locationJsonList(request):
+    with connection.cursor() as cursor:
+        cursor.execute(fetchQueryLocation())
+        rows = cursor.fetchall()
+
+    locations = {}
+    for row in rows:
+        locationId, locName, address, isActive, longitude, latitude = row
+        if locationId not in locations:
+            locations[locationId] = {
+                "locationId": locationId,
+                "locName": locName,
+                "address": address,
+                "isActive": isActive,
+                "coordinates": []
+            }
+        if longitude is not None and latitude is not None:
+            locations[locationId]["coordinates"].append({
+                "longitude": longitude,
+                "latitude": latitude
+            })
+
+    # Convert the locations dict to a list for JSON response
+    jsonResultData = list(locations.values())
+    return JsonResponse({"data": jsonResultData}, safe=False)
+
+@csrf_exempt
+def saveLocation(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body.decode('utf-8'))
+            locationId = data.get("locationId", "")
+            locName = data.get("locName", "")
+            address = data.get("address", "")
+            isActive = data.get("isActive", "Y")
+            coords = data.get("coords", [])
+
+            # Save main location
+            sql_query = saveUpdateQueryLocation()
+            params = (locationId, locName, address, isActive)
+            with connection.cursor() as cursor:
+                cursor.execute(sql_query, params)
+
+            # Save coordinates (polygon points) - ctrlNo is auto-increment
+            sql_det = saveQueryLocationDet()
+            with connection.cursor() as cursor:
+                for coord in coords:
+                    cursor.execute(sql_det, (locationId, coord['longitude'], coord['latitude'], 'Y'))
+       
+            return JsonResponse({"Status": "Saved"})
+        except Exception as err:
+            return JsonResponse({"Status": "Error", "Message": str(err)})
+    else:
+        return JsonResponse({"Status": "Wrong Request"})
+
+
+
+#print 
+def printView(request):
+    return render(request, 'amsApp/print.html')

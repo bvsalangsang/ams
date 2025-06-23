@@ -51,3 +51,20 @@ def scheduleParams():
         "isSet": "",
         "isActive": "",
     }
+
+def locationParams():
+    return {
+        "locationId": "",
+        "locName": "",
+        "address": "",
+        "isActive": "",
+    }
+
+def locationDetParams():
+    return {
+        "ctrlNo": "",
+        "locationId": "",
+        "longitude": "",
+        "latitude": "",
+        "isActive": "",
+    }

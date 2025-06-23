@@ -34,6 +34,30 @@ def fecthAttendanceLogs():
           """
     return sql
 
+def fetchAttendanceLogsByDateRange():
+    sql = """
+        SELECT pch.punchNo, 
+               evt.eventName, 
+               pch.empId, 
+               pch.pdsId,
+               pch.employee, 
+               pch.office,
+               pch.punchDate, 
+               pch.punchTimeIn, 
+               pch.punchTimeOut, 
+               pch.latitude, 
+               pch.longitude, 
+               pch.officeId,
+               pch.systemDateTime, 
+               pch.isActive
+          FROM punch_log pch
+          LEFT JOIN man_event evt ON pch.eventNo = evt.eventNo
+         WHERE pch.isActive = 'Y'
+           AND pch.punchDate BETWEEN %s AND %s
+         ORDER BY pch.punchNo DESC
+    """
+    return sql
+
 #shift
 def fetchShift():
    sql = ("""
@@ -145,10 +169,45 @@ def delQueryEventType():
 #location   
 def fetchQueryLocation():
     sql = """
-        SELECT * FROM man_location WHERE isActive = 'Y'
-
+        SELECT loc.locationId, 
+               loc.locName,
+               loc.address,
+               loc.isActive,
+               locDet.longitude,
+               locDet.latitude
+               FROM man_location loc
+               LEFT JOIN man_location_det locDet ON loc.locationId = locDet.locationId
+               WHERE loc.isActive = 'Y'
         """
     return sql
+
+def fetchQueryLocationOnly():
+    sql= """
+        SELECT * from man_location WHERE isActive = 'Y'
+     
+         """
+    return sql
+
+def saveUpdateQueryLocation():
+    sql = """
+        INSERT INTO man_location (locationId, locName, address, isActive)
+        VALUES (%s, %s, %s, %s)
+        ON DUPLICATE KEY UPDATE
+        locName = VALUES(locName),
+        address = VALUES(address),
+        isActive = VALUES(isActive)
+    """
+    return sql
+
+        
+def saveQueryLocationDet():
+    sql = """
+        INSERT INTO man_location_det (locationId, longitude, latitude, isActive)
+        VALUES (%s, %s, %s, %s)
+        """
+    return sql
+
+
 
 #schedule
 def fetchQuerySchedule():

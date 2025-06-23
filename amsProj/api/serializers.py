@@ -20,3 +20,4 @@ class ScheduleSerializer(serializers.ModelSerializer):
     class Meta: 
         model = ManSchedule
         fields  = '__all__'
+

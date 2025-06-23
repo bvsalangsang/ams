@@ -76,6 +76,7 @@ def queryGetSysInfo():
 def queryGetSchedule():
     sql = """
              SELECT sch.schedId,
+                loc.locationId,
                 loc.locName,
                 evt.eventNo,
                 evt.eventName,
@@ -99,4 +100,53 @@ def queryGetSchedule():
     params = ()
     return sql, params   
 
+def queryGetScheduleByDate(startDate, endDate):    
+    sql = """
+          SELECT sch.schedId,
+                loc.locationId,
+                loc.locName,
+                evt.eventNo,
+                evt.eventName,
+                sch.startDate,
+                sch.endDate,
+                sch.startTime,
+                sch.startGrace,
+                sch.endTime,
+                sch.endGrace,
+                sch.recurrenceType,
+                sch.recurrenceDays,
+                sch.dateCreated,
+                sch.isRecurring,
+                sch.isSet,
+                sch.isActive
+            FROM schedule sch
+            LEFT JOIN man_location loc ON sch.locationId = loc.locationId
+            LEFT JOIN man_event evt ON sch.eventNo = evt.eventNo
+            WHERE sch.isActive = 'Y'
+            AND sch.isSet = 'Y'
+            AND (
+                    (sch.startDate != '0000-00-00' AND sch.startDate = %s)
+                    OR
+                    (sch.endDate != '0000-00-00' AND sch.endDate = %s)
+                );
+            """
+    params = (startDate, endDate)
+
+    return sql, params
+
+def queryLocationById(locId):
+
+    sql = """
+        SELECT loc.locationId, 
+               loc.locName,
+               loc.address,
+               locDet.longitude,
+               locDet.latitude
+               FROM man_location loc
+               LEFT JOIN man_location_det locDet ON loc.locationId = locDet.locationId
+               WHERE loc.isActive = 'Y' AND loc.locationId = %s
+        """
     
+    params = (locId,)
+    
+    return sql,params

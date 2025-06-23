@@ -37,3 +37,14 @@ class ScheduleForm(forms.ModelForm):
             'endGrace': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
             'isActive': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
+
+class LocationForm(forms.ModelForm):
+    class Meta:
+        model = ManLocation
+        fields = ['locationId', 'locName', 'address']
+        widgets = {
+            'locationId': forms.TextInput(attrs={'class': 'form-control', 'style': 'margin-bottom:10px'}),
+            'locName': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Location Name'}),
+            'address': forms.Textarea(attrs={'rows': '4', 'class': 'form-control', 'placeholder': 'Address'}),
+         }
+
