@@ -406,7 +406,8 @@ def scheduleSaveUpdate(request):
 
         # Helper to get POST with fallback
         def get_post(key, default=""):
-            return request.POST.get(key, default).strip()
+           val = request.POST.get(key)
+           return val.strip() if val and val.strip() else None
 
         # Assign fields with defaults
         schedule["schedId"] = get_post("schedId")
