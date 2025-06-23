@@ -86,24 +86,24 @@ DATABASES = {
     #     'NAME': BASE_DIR / 'db.sqlite3',
     # }
     # for local 
-      "default": {
-        "ENGINE": 'django.db.backends.mysql',
-        "NAME": 'ams',
-        "USER": 'root',
-        "PASSWORD": '',
-        "HOST": 'localhost',
-        "PORT": '3306',
-      },
-
-     # FOR ubuntu
-    #  "default": {
+    #   "default": {
     #     "ENGINE": 'django.db.backends.mysql',
     #     "NAME": 'ams',
-    #     "USER": 'bobby',
-    #     "PASSWORD": '@Sdmd1234',
+    #     "USER": 'root',
+    #     "PASSWORD": '',
     #     "HOST": 'localhost',
     #     "PORT": '3306',
-    # }
+    #   },
+
+    #  FOR ubuntu
+     "default": {
+        "ENGINE": 'django.db.backends.mysql',
+        "NAME": 'ams',
+        "USER": 'bobby',
+        "PASSWORD": '@Sdmd1234',
+        "HOST": 'localhost',
+        "PORT": '3306',
+    }
   
 
 }
