@@ -1,11 +1,17 @@
 
 /* dataTables custom styles */
 /* Highlight table headers */
+
+body, table.dataTable {
+    font-family: 'Quicksand', sans-serif !important;
+}
+
 	#event-table thead th,
 	#event-type-table thead th {
 		background-color: #f0f0f5;
 		font-weight: bold;
 		color: #333;
+		
 	}
 
 	/* Row height and padding */

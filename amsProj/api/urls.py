@@ -9,4 +9,6 @@ urlpatterns = [
     path('dashboard/api/get-punch-by-id/', views.getPunchByPdsId),
     path('dashboard/api/get-sysinfo/', views.getSysInfo),
     path('dashboard/api/get-schedule/', views.getDataSchedule),
+    path('dashboard/api/get-schedule-by-date/', views.getScheduleByDate),
+    path('dashboard/api/get-location-by-id/', views.getLocationById),
 ]

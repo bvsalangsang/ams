@@ -310,7 +310,7 @@
 ***upload files on github  "dev-250605a"***
 
 '-------------------------------------------------------------------------------
-'=-250609 - 0017 - Version 0.0.17- * BOB *
+'=-250609 - 0017 - Version 0.0.17 - * BOB *
 '-------------------------------------------------------------------------------
 =-sqlcommands.py (amsApp)
   * added query 'fecthAttendanceLogs'
@@ -320,7 +320,56 @@
 
 ***upload files on github  "dev-250609"***
 
+'-------------------------------------------------------------------------------
+'=-250610 - 0018 - Version 0.0.18 - * BOB *
+'-------------------------------------------------------------------------------
+=-views.py (amsApp)
+  * added function 'attJsonListByOfficeRange'
+  * added view 'attendanceByOfficeView'
 
+=-sqlcommands.py (amsApp)
+  * added query 'fetchAttendanceLogsByDateRange'
+
+=-urls.py (amsApp)
+  * added path 'attendanceByOfficeView'
+
+'-------------------------------------------------------------------------------
+'=-250616- 0019 - Version 0.0.19 - * BOB *
+'-------------------------------------------------------------------------------
+=- html  
+  * added 'man-location_old.html'
+  * updated code on 'map-location.html'
+
+'-------------------------------------------------------------------------------
+'=-250617- 0020 - Version 0.0.20 - * BOB *
+'-------------------------------------------------------------------------------
+=-sqlcommands.py (amsApp)
+  * added query 'saveUpdateQueryLocation'
+  * added query 'saveQueryLocationDet'
+  * modify query 'fetchQueryLocation'
+
+=-views.py 
+  * added function 'saveLocation'
+  * added function 'locationJsonList'
+
+=-urls.py 
+  * added path 'locationJsonList'
+
+=-maps-location.html  
+  * added datatable for location list
+  * enhance map location and saving
+
+'-------------------------------------------------------------------------------
+'=-250619- 0021 - Version 0.0.21 - * BOB *
+'-------------------------------------------------------------------------------
+=-sqlcommands.py (API)
+  * added query 'queryGetScheduleByDate'
+
+'-------------------------------------------------------------------------------
+'=-250623- 0022 - Version 0.0.22 - * BOB *
+'-------------------------------------------------------------------------------
+
+  ***upload files on github  "dev-250623"***
  
 
 

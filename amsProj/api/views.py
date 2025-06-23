@@ -129,27 +129,112 @@ def getDataSchedule(request):
             for row in rows:
                 tempRes = {
                     "schedId": row[0],
-                    "locName": row[1],
-                    "eventNo": row[2],
-                    "eventName": row[3],
-                    "startDate": row[4] if row[4] else "0000-00-00",
-                    "endDate": row[5] if row[5] else "0000-00-00",
-                    "startTime": row[6] if row[6] else "00:00",
-                    "startGrace": row[7] if row[7] else "00",
-                    "endTime": row[8] if row[8] else "00:00",
-                    "endGrace": row[9] if row[9] else "00",
-                    "recurrenceType": row[10],
-                    "recurrenceDays": row[11],
-                    "dateCreated": str(row[12]) if row[12] else None,
-                    "isRecurring": row[13],
-                    "isSet": row[14],
-                    "isActive": row[15],
+                    "locId": row[1],
+                    "locName": row[2],
+                    "eventNo": row[3],
+                    "eventName": row[4],
+                    "startDate": row[5] if row[5] else "0000-00-00",
+                    "endDate": row[6] if row[6] else "0000-00-00",
+                    "startTime": row[7] if row[7] else "00:00",
+                    "startGrace": row[8] if row[8] else "00",
+                    "endTime": row[9] if row[9] else "00:00",
+                    "endGrace": row[10] if row[10] else "00",
+                    "recurrenceType": row[11],
+                    "recurrenceDays": row[12],
+                    "dateCreated": str(row[13]) if row[13] else None,
+                    "isRecurring": row[14],
+                    "isSet": row[15],
+                    "isActive": row[16],
                 }
                 jsonResultData.append(tempRes)
             return Response({"data": jsonResultData}, status=status.HTTP_200_OK)
         else:
             return Response({"data": None}, status=status.HTTP_404_NOT_FOUND)
 
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
+def getScheduleByDate(request):
+    startDate = request.GET.get('startDate')
+    endDate = request.GET.get('endDate')
+
+    if not startDate or not endDate:
+        return Response({"error": "Missing startDate or endDate"}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        with connection.cursor() as cursor:
+            sql, params = queryGetScheduleByDate(startDate=startDate, endDate=endDate)
+            cursor.execute(sql, params)
+            rows = cursor.fetchall()
+
+        tempRes = None
+        jsonResultData = []
+
+        if rows:
+            for row in rows:
+                tempRes = {
+                    "schedId": row[0],
+                    "locId": row[1],
+                    "locName": row[2],
+                    "eventNo": row[3],
+                    "eventName": row[4],
+                    "startDate": row[5] if row[5] else "0000-00-00",
+                    "endDate": row[6] if row[6] else "0000-00-00",
+                    "startTime": row[7] if row[7] else "00:00",
+                    "startGrace": row[8] if row[8] else "00",
+                    "endTime": row[9] if row[9] else "00:00",
+                    "endGrace": row[10] if row[10] else "00",
+                    "recurrenceType": row[11],
+                    "recurrenceDays": row[12],
+                    "dateCreated": str(row[13]) if row[13] else None,
+                    "isRecurring": row[14],
+                    "isSet": row[15],
+                    "isActive": row[16],
+                }
+                jsonResultData.append(tempRes)
+            return Response({"data": jsonResultData}, status=status.HTTP_200_OK)
+        else:
+            return Response({"data": None}, status=status.HTTP_404_NOT_FOUND)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+# location API
+@api_view(['GET'])
+def getLocationById(request):
+    locId = request.GET.get('locId')
+    
+    if not locId:
+        return Response({"error": "Missing locId"}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        with connection.cursor() as cursor:
+            sql, params = queryLocationById(locId=locId)
+            cursor.execute(sql, params)
+            rows = cursor.fetchall()
+
+        if rows:
+            # Assume all rows have the same location info, just different coordinates
+            locationId = rows[0][0]
+            locName = rows[0][1]
+            address = rows[0][2]
+            coordinates = []
+            for row in rows:
+                coordinates.append({
+                    "longitude": row[3],
+                    "latitude": row[4]
+                })
+            result = {
+                "locationId": locationId,
+                "locName": locName,
+                "address": address,
+                "coordinates": coordinates
+            }
+            return Response(result, status=status.HTTP_200_OK)
+        else:
+            return Response({"data": None}, status=status.HTTP_404_NOT_FOUND)
 
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
