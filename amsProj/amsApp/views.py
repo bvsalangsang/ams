@@ -240,6 +240,7 @@ def eventJsonList(request):
         jsonResultData.append(tempRes)
     return JsonResponse({"data":list(jsonResultData)},safe=False)
 
+@csrf_exempt
 def eventSaveUpdateParams(request):
    
     if request.method == "POST":

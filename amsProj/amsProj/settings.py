@@ -95,7 +95,7 @@ DATABASES = {
     #     "PORT": '3306',
     #   },
 
-     # FOR ubuntu
+    #  FOR ubuntu
      "default": {
         "ENGINE": 'django.db.backends.mysql',
         "NAME": 'ams',
