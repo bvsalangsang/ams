@@ -169,7 +169,11 @@
 		// Add New Event Button
 		$("#addEvent").click(function () {
 			$("#eventForm")[0].reset();
-			$("#id_eventNo").val("");
+			//$("#id_eventNo").val("");
+			 $.get("{% url 'getNextPkeyId' %}?model=ManEvent")
+				.done(function(data) {
+					$("#id_eventNo").val(data.next_id);
+				});
 			$(".modal-title-text").text("Add New Entry");
 			$(".save-btn-text").text("Save");
 			$("#event-modal").modal("show");

@@ -1,15 +1,20 @@
 {% load static %}
 <aside class="main-sidebar sidebar-dark-primary elevation-4">
 	<!-- Brand Logo -->
-<a href="index3.html" class="brand-link mb-3 d-flex align-items-center justify-content-center">
-    <img
-        src="{% static 'amsApp/dist/img/ams-logo.png' %}"
-        alt="AdminLTE Logo"
-        class="brand-image img-circle elevation-3 mb-0"
-        style="opacity: 0.8; width: 40px; height: 40px;"
-    />
-    <span class="brand-text font-weight-light ml-2" style="font-size: 1.5rem;">AMS v1.0</span>
-</a>
+	<a
+		href="index3.html"
+		class="brand-link mb-3 d-flex align-items-center justify-content-center"
+	>
+		<img
+			src="{% static 'amsApp/dist/img/ams-logo.png' %}"
+			alt="AdminLTE Logo"
+			class="brand-image img-circle elevation-3 mb-0"
+			style="opacity: 0.8; width: 40px; height: 40px"
+		/>
+		<span class="brand-text font-weight-light ml-2" style="font-size: 1.5rem"
+			>AMS v1.0</span
+		>
+	</a>
 
 	<!-- Sidebar -->
 	<div class="sidebar">
@@ -55,78 +60,68 @@
 				<!-- Add icons to the links using the .nav-icon class
                with font-awesome or any other icon font library -->
 				<li class="nav-item menu-open">
-					<a href="#" class="nav-link active">
+					<!-- <a href="#" class="nav-link active">
 						<i class="nav-icon fas fa-tachometer-alt"></i>
 						<p>
 							Dashboard
 							<i class="right fas fa-angle-left"></i>
 						</p>
-					</a>
-					<ul class="nav nav-treeview">
-						<li class="nav-item">
-							<a href="{% url 'attendanceLogs' %}" class="nav-link">
-								<i class="far fa-circle nav-icon"></i>
-								<p>Attendance Logs</p>
-							</a>
-						</li>
-
-							<li class="nav-item">
-							<a href="{% url 'attendanceByOfficeView' %}" class="nav-link">
-								<i class="far fa-circle nav-icon"></i>
-								<p>Attendance Filtered</p>
-							</a>
-						</li>
-					</ul>
+					</a> -->
 				</li>
-		
+				<li class="nav-item">
+					<a href="{% url 'dashboard' %}" class="nav-link active">
+						<i class="nav-icon fas fa-tachometer-alt"></i>
+						<p>Dashboard</p>
+					</a>
+				</li>
+				<li class="nav-item">
+					<a href="{% url 'attendanceView' %}" class="nav-link">
+						<i class="far fa-circle nav-icon"></i>
+						<p>Attendance</p>
+					</a>
+				</li>
 				<li class="nav-header">LIBRARY</li>
 				<li class="nav-item">
 					<a href="#" class="nav-link">
-					<i class="nav-icon fas fa-table"></i>
-					<p>
-						Events
-						<i class="fas fa-angle-left right"></i>
-					</p>
+						<i class="nav-icon fas fa-table"></i>
+						<p>
+							Events
+							<i class="fas fa-angle-left right"></i>
+						</p>
 					</a>
 					<ul class="nav nav-treeview">
-					<li class="nav-item">
-						<a href="{% url 'shiftView' %}" class="nav-link">
-						<i class="far fa-circle nav-icon"></i>
-						<p>Event</p>
-						</a>
-					</li>
-					<li class="nav-item">
-						<a href="{% url 'eventTypeView' %}" class="nav-link">
-						<i class="far fa-circle nav-icon"></i>
-						<p>Event Type</p>
-						</a>
-					</li>
+						<li class="nav-item">
+							<a href="{% url 'shiftView' %}" class="nav-link">
+								<i class="far fa-circle nav-icon"></i>
+								<p>Event</p>
+							</a>
+						</li>
+						<li class="nav-item">
+							<a href="{% url 'eventTypeView' %}" class="nav-link">
+								<i class="far fa-circle nav-icon"></i>
+								<p>Event Type</p>
+							</a>
+						</li>
 					</ul>
 				</li>
 				<li class="nav-item">
-					<a href= "{% url 'scheduleView' %}" class="nav-link">
+					<a href="{% url 'scheduleView' %}" class="nav-link">
 						<i class="nav-icon far fa-calendar-alt"></i>
-						<p>
-							Schedule
-					    </p>
+						<p>Schedule</p>
 					</a>
 				</li>
 
-					<li class="nav-item">
-					<a href= "{% url 'locationView' %}" class="nav-link">
+				<li class="nav-item">
+					<a href="{% url 'locationView' %}" class="nav-link">
 						<i class="nav-icon far fa-calendar-alt"></i>
-						<p>
-							Location
-					    </p>
+						<p>Location</p>
 					</a>
 				</li>
 				<li class="nav-header">CONTROL PANEL</li>
 				<li class="nav-item">
-					<a href= "{% url 'setScheduleView' %}" class="nav-link">
+					<a href="{% url 'setScheduleView' %}" class="nav-link">
 						<i class="nav-icon far fa-calendar-alt"></i>
-						<p>
-							Set Schedule
-					    </p>
+						<p>Set Schedule</p>
 					</a>
 				</li>
 			</ul>

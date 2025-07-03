@@ -1,8 +1,11 @@
+from django.utils import timezone
 from django.db import connection
-from django.http import JsonResponse
+from django.http import JsonResponse,HttpResponseBadRequest
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from collections import defaultdict
+from django.apps import apps
+from django.db.models import Max
 import json
 from .sqlcommands import * 
 from .sqlparams import *
@@ -41,13 +44,19 @@ def attJsonList(request):
     return JsonResponse({"data":list(jsonResultData)},safe=False)
 
 def attJsonListByOfficeRange(request):
-    start_date = request.GET.get("start_date") or request.POST.get("start_date")
-    end_date = request.GET.get("end_date") or request.POST.get("end_date")
-    if not start_date or not end_date:
-        return JsonResponse({"Status": "Error", "Message": "Missing start_date or end_date"}, status=400)
+    start_date = request.GET.get("start_date_office") or request.POST.get("start_date_office")
+    end_date = request.GET.get("end_date_office") or request.POST.get("end_date_office")
 
+    filterQuery = ""
+    params = []
+
+    # If no dates, fetch all logs
+    if start_date and end_date:
+        filterQuery += " AND pch.punchDate BETWEEN %s AND %s"
+        params.extend([start_date, end_date])
+    
     with connection.cursor() as cursor:
-        cursor.execute(fetchAttendanceLogsByDateRange(), [start_date, end_date])
+        cursor.execute(fetchAttendanceLogsByDateRange(filterQuery), params)
         rows = cursor.fetchall()
 
     office_dict = defaultdict(lambda: defaultdict(list))
@@ -71,11 +80,110 @@ def attJsonListByOfficeRange(request):
         }
         office_dict[office][emp_key].append(log)
     result = {office: dict(emp_logs) for office, emp_logs in office_dict.items()}
-    print(json.dumps(result, indent=2, default=str))  # Debug
     return JsonResponse(result, safe=False)
 
 def attendanceByOfficeView(request):
     return render(request, 'amsApp/attendance.html')
+
+def attendanceView(request):
+    events = ManEvent.objects.raw(fetchQueryEvent())
+    return render(request, 'amsApp/attendance-view.html',{'events': events})
+
+def attJsonListByEvent(request):
+    eventNo = request.GET.get("eventNo")
+    start_date = request.GET.get("start_date")
+    end_date = request.GET.get("end_date")
+
+    filterQuery = ""
+    params = []
+
+    if start_date and end_date and eventNo:
+        filterQuery += " AND pch.punchDate BETWEEN %s AND %s AND pch.eventNo = %s"
+        params.extend([start_date, end_date, eventNo])
+    elif start_date and end_date:
+        filterQuery += " AND pch.punchDate BETWEEN %s AND %s"
+        params.extend([start_date, end_date])
+    elif eventNo:
+        filterQuery += " AND pch.eventNo = %s"
+        params.append(eventNo)
+
+    with connection.cursor() as cursor:
+        cursor.execute(fetchAttendaceByEvent(filterQuery), params)
+        rows = cursor.fetchall()
+
+    grouped = defaultdict(list)
+    for row in rows:
+        punchNo = row[0]
+        eventName = row[1]
+        empId = row[2]
+        pdsId = row[3]
+        employee = row[4]
+        office = row[5]
+        punchDate = row[6]
+        punchTimeIn = row[7]
+        punchTimeOut = row[8]
+        latitude = row[9]
+        longitude = row[10]
+        systemDateTime = row[11]
+        isActive = row[12]
+
+        grouped[eventName].append({
+            "punchNo": punchNo,
+            "empId": empId,
+            "pdsId": pdsId,
+            "employee": employee,
+            "office": office,
+            "punchDate": str(punchDate),
+            "punchTimeIn": punchTimeIn,
+            "punchTimeOut": punchTimeOut,
+            "latitude": latitude,
+            "longitude": longitude,
+            "systemDateTime": str(systemDateTime) if systemDateTime else None,
+            "isActive": isActive,
+        })
+
+    result = []
+    for event, punches in grouped.items():
+        result.append({
+            "eventName": event,
+            "records": punches
+        })
+
+    return JsonResponse({"data": result}, safe=False)
+# getting Pkeys
+ALLOWED_MODELS = [
+    'ManShift', 'ManShiftType', 'ManShiftBreak', 'PunchLog', 'sysInfo',
+    'ManEvent', 'ManEventType', 'ManLocation', 'ManLocationDet', 'ManSchedule'
+]
+
+def getNextPkeyId(request):
+    
+    model_name = request.GET.get('model')
+    if not model_name:
+        return HttpResponseBadRequest("Missing 'model' parameter.")
+    
+    if model_name not in ALLOWED_MODELS:
+        return HttpResponseBadRequest("Model access is not allowed.")
+
+    try:
+        model = apps.get_model('amsApp', model_name)
+    except LookupError:
+        return HttpResponseBadRequest(f"Model '{model_name}' not found.")
+
+    pk_field = model._meta.pk.name
+    pk_field_type = model._meta.get_field(pk_field).get_internal_type()
+
+    # Only support integer-based primary keys for now
+    if pk_field_type not in ['AutoField', 'BigAutoField', 'IntegerField']:
+        return HttpResponseBadRequest(f"Unsupported primary key type: {pk_field_type}")
+
+    try:
+       latest = model.objects.aggregate(max_id=Max(pk_field))['max_id']
+       next_id = (latest + 1) if latest else 1
+    except Exception as e:
+        return HttpResponseBadRequest("Failed to retrieve next primary key.")
+
+    return JsonResponse({'next_id': next_id, 'pk_field': pk_field})
 
 #shift 
 @csrf_exempt
@@ -480,7 +588,7 @@ def setSchedule(request):
 #location
 def locationView(request):
     mapForm = LocationForm()
-    return render(request, 'amsApp/map-location.html',{'mapForm':mapForm})
+    return render(request, 'amsApp/location.html',{'mapForm':mapForm})
 
 def locationJsonList(request):
     with connection.cursor() as cursor:
@@ -518,12 +626,21 @@ def saveLocation(request):
             address = data.get("address", "")
             isActive = data.get("isActive", "Y")
             coords = data.get("coords", [])
+            saveType = request.GET.get("saveType")
+
+            print("saveType:", saveType)
 
             # Save main location
             sql_query = saveUpdateQueryLocation()
             params = (locationId, locName, address, isActive)
             with connection.cursor() as cursor:
                 cursor.execute(sql_query, params)
+            
+            if saveType == "update":
+                # Delete existing coordinates for this location
+                del_sql = delQueryLocationDet()
+                with connection.cursor() as cursor:
+                    cursor.execute(del_sql, (locationId,))  
 
             # Save coordinates (polygon points) - ctrlNo is auto-increment
             sql_det = saveQueryLocationDet()
@@ -537,8 +654,198 @@ def saveLocation(request):
     else:
         return JsonResponse({"Status": "Wrong Request"})
 
+# dashboard functions
+def getDashTotalRecords(request):
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
 
+    # 1. Total Registered Employee (all time, isActive='Y')
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT COUNT(DISTINCT empId)
+            FROM punch_log
+            WHERE isActive='Y'
+        """)
+        total_registered_employee = cursor.fetchone()[0] or 0
+
+    # Prepare dynamic SQL and params for the rest
+    date_filter = ""
+    params = []
+    if start_date and end_date:
+        date_filter = "AND punchDate BETWEEN %s AND %s"
+        params = [start_date, end_date]
+
+    # 2. Total Presents (unique empId, isActive='Y', optional date range)
+    with connection.cursor() as cursor:
+        cursor.execute(f"""
+            SELECT COUNT(DISTINCT empId)
+            FROM punch_log
+            WHERE isActive='Y' {date_filter}
+        """, params)
+        total_presents = cursor.fetchone()[0] or 0
+
+    # 3. Total Offices (unique, non-null officeId, isActive='Y', optional date range)
+    with connection.cursor() as cursor:
+        cursor.execute(f"""
+            SELECT COUNT(DISTINCT officeId)
+            FROM punch_log
+            WHERE isActive='Y' AND officeId IS NOT NULL AND officeId != '' {date_filter}
+        """, params)
+        total_offices = cursor.fetchone()[0] or 0
+
+    # 4. Total Events (unique eventNo, isActive='Y', optional date range)
+    with connection.cursor() as cursor:
+        cursor.execute(f"""
+            SELECT COUNT(DISTINCT eventNo)
+            FROM punch_log
+            WHERE isActive='Y' {date_filter}
+        """, params)
+        total_events = cursor.fetchone()[0] or 0
+
+    data = {
+        "total_registered_employee": total_registered_employee,
+        "total_presents": total_presents,
+        "total_offices": total_offices,
+        "total_events": total_events,
+    }
+    return JsonResponse(data)
+
+def getDashAttendance(request):
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+
+    date_filter = ""
+    params = []
+    if start_date and end_date:
+        date_filter = "AND punchDate BETWEEN %s AND %s"
+        params = [start_date, end_date]
+
+    # PunchTimeIn per week
+    with connection.cursor() as cursor:
+        cursor.execute(f"""
+            SELECT YEAR(punchDate) AS year, WEEK(punchDate, 1) AS week, COUNT(*) AS count
+            FROM punch_log
+            WHERE isActive='Y' AND punchTimeIn IS NOT NULL AND punchTimeIn != '' {date_filter}
+            GROUP BY year, week
+            ORDER BY year, week
+        """, params)
+        punchin_rows = cursor.fetchall()
+
+    # PunchTimeOut per week
+    with connection.cursor() as cursor:
+        cursor.execute(f"""
+            SELECT YEAR(punchDate) AS year, WEEK(punchDate, 1) AS week, COUNT(*) AS count
+            FROM punch_log
+            WHERE isActive='Y' AND punchTimeOut IS NOT NULL AND punchTimeOut != '' {date_filter}
+            GROUP BY year, week
+            ORDER BY year, week
+        """, params)
+        punchout_rows = cursor.fetchall()
+
+    # Format week as "YYYY-WW"
+    punchin_data = [{"week": f"{row[0]}-W{row[1]:02d}", "count": row[2]} for row in punchin_rows]
+    punchout_data = [{"week": f"{row[0]}-W{row[1]:02d}", "count": row[2]} for row in punchout_rows]
+
+    return JsonResponse({
+        "punchTimeIn": punchin_data,
+        "punchTimeOut": punchout_data
+    })
+
+def getDashEventPart(request):
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+
+    date_filter = ""
+    params = []
+    if start_date and end_date:
+        date_filter = "AND p.eventNo IS NOT NULL AND p.punchDate BETWEEN %s AND %s"
+        params = [start_date, end_date]
+    else:
+        date_filter = "AND p.eventNo IS NOT NULL"
+
+    with connection.cursor() as cursor:
+        cursor.execute(f"""
+            SELECT p.eventNo, COALESCE(e.eventName, 'Unknown Event') AS eventName, COUNT(DISTINCT p.empId) AS participant_count
+            FROM punch_log p
+            LEFT JOIN man_event e ON p.eventNo = e.eventNo
+            WHERE p.isActive='Y' {date_filter}
+            GROUP BY p.eventNo, e.eventName
+            ORDER BY participant_count DESC
+        """, params)
+        rows = cursor.fetchall()
+
+    data = [
+        {
+            "eventNo": row[0],
+            "eventName": row[1],
+            "count": row[2]
+        }
+        for row in rows if row[0]
+    ]
+
+    return JsonResponse({"participation": data})
+
+def getDashOffice(request):
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+
+    date_filter = ""
+    params = []
+    if start_date and end_date:
+        date_filter = "AND punchDate BETWEEN %s AND %s"
+        params = [start_date, end_date]
+
+    # Group by office (name), for all events, filtered by date if provided
+    with connection.cursor() as cursor:
+        cursor.execute(f"""
+            SELECT office, COUNT(DISTINCT empId) AS punch_count
+            FROM punch_log
+            WHERE isActive='Y' {date_filter}
+            GROUP BY office
+            ORDER BY punch_count DESC
+        """, params)
+        rows = cursor.fetchall()
+
+    data = [
+        {
+            "office": row[0] if row[0] else "Unknown",
+            "count": row[1]
+        }
+        for row in rows
+    ]
+
+    return JsonResponse({"offices": data})
+
+def getDashPunchesByWeekday(request):
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+
+    date_filter = ""
+    params = []
+    if start_date and end_date:
+        date_filter = "AND punchDate BETWEEN %s AND %s"
+        params = [start_date, end_date]
+
+    with connection.cursor() as cursor:
+        cursor.execute(f"""
+            SELECT 
+                DAYNAME(punchDate) AS weekday,
+                DAYOFWEEK(punchDate) AS weekday_num,
+                COUNT(*) AS count
+            FROM punch_log
+            WHERE isActive='Y' {date_filter}
+            GROUP BY weekday, weekday_num
+            ORDER BY weekday_num
+        """, params)
+        rows = cursor.fetchall()
+
+    data = [
+        {"weekday": row[0], "count": row[2]}
+        for row in rows
+    ]
+    return JsonResponse({"punches_by_weekday": data})
 
 #print 
 def printView(request):
     return render(request, 'amsApp/print.html')
+

@@ -79,6 +79,8 @@ WSGI_APPLICATION = 'amsProj.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
+TIME_ZONE = 'Asia/Manila'
+USE_TZ = False
 
 DATABASES = {
     # 'default': {
@@ -93,6 +95,9 @@ DATABASES = {
     #     "PASSWORD": '',
     #     "HOST": 'localhost',
     #     "PORT": '3306',
+    #     'OPTIONS': {
+    #         'init_command': "SET time_zone = '+08:00';",
+    #     },
     #   },
 
     #  FOR ubuntu
@@ -103,6 +108,9 @@ DATABASES = {
         "PASSWORD": '@Sdmd1234',
         "HOST": 'localhost',
         "PORT": '3306',
+          'OPTIONS': {
+            'init_command': "SET time_zone = '+08:00';",
+        },
     }
   
 

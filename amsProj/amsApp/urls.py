@@ -7,7 +7,16 @@ urlpatterns = [
     path('dashboard/attJsonList/', attJsonList, name='attJsonList'),
     path('dashboard/attJsonListByOfficeRange/', attJsonListByOfficeRange, name='attJsonListByOfficeRange'),
     path('dashboard/attendance-by-office/', attendanceByOfficeView, name='attendanceByOfficeView'),
-    
+    path('dashboard/attendance-view/', attendanceView, name='attendanceView'),
+    path('dashboard/attendance-by-event/', attJsonListByEvent, name='attJsonListByEvent'),
+    path('dashboard/get-dash-records/', getDashTotalRecords, name='getDashTotalRecords'), 
+    path('dashboard/get-dash-att/', getDashAttendance, name='getDashAttendance'), 
+    path('dashboard/get-dash-event/', getDashEventPart, name='getDashEventPart'), 
+    path('dashboard/get-dash-off/', getDashOffice, name='getDashOffice'),
+    path('dashboard/get-dash-punch/', getDashPunchesByWeekday, name='getDashPunchesByWeekday'),
+
+    #get PkeyId 
+    path('dashboard/get-next-pkeyId/', getNextPkeyId, name='getNextPkeyId'),
 
     #shift
     # path('dashboard/event/', shiftView, name='shiftView'),
@@ -38,7 +47,7 @@ urlpatterns = [
     path('dashboard/deleteShiftType/', deleteShiftType, name='deleteShiftType'),
     
     #location
-    path('dashboard/map-location/', locationView, name='locationView'),
+    path('dashboard/location/', locationView, name='locationView'),
     path('dashboard/locationJsonList/', locationJsonList, name='locationJsonList'),
     path('dashboard/locationSaveUpdate/', saveLocation, name='saveLocation'),
 

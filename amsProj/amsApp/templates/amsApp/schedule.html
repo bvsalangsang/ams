@@ -86,10 +86,11 @@
 `
 <script>
 	$(document).ready(function () {
- 		  $('#id_recurrenceDays').select2();
+ 		$('#id_recurrenceDays').select2();
   
 		const dataFetch = "{% url 'scheduleJsonList' %}";
-    // Fetch sample data for debugging
+	
+		// Fetch sample data for debugging
 		fetch(dataFetch)
 			.then(response => response.json())
 			.then(data => console.log(data))
@@ -154,140 +155,147 @@
 		table.buttons().container().appendTo("#event-table_wrapper .col-md-6:eq(0)");
 
 		// Global event delegation for all dynamic actions
-// Global event delegation for all dynamic actions
-$(document).on("click", function (e) {
-	const target = $(e.target).closest("a");
+   
+		$(document).on("click", function (e) {
+			const target = $(e.target).closest("a");
 
-	// Edit Schedule Entry Modal
-	if (target.hasClass("editBtn") && target.closest("#event-table").length) {
-		const rowData = table.row(target.closest("tr")).data();
+			// Edit Schedule Entry Modal
+			if (target.hasClass("editBtn") && target.closest("#event-table").length) {
+				const rowData = table.row(target.closest("tr")).data();
 
-		$("#id_schedId").val(rowData.schedId);
-		$("#id_location").val(rowData.eventNo).trigger("change");
-		$("#id_event").val(rowData.locationId).trigger("change");
-		$("#id_startDate").val(rowData.startDate);
-		$("#id_endDate").val(rowData.endDate);
-		$("#id_startTime").val(rowData.startTime);
-		$("#id_startGrace").val(rowData.startGrace);
-		$("#id_endTime").val(rowData.endTime);
-		$("#id_endGrace").val(rowData.endGrace);
-		$("#id_recurrenceType").val(rowData.recurrenceType);
-		$("#id_recurrenceDays").val(rowData.recurrenceDays).trigger("change"); // Make sure `recurrenceDays` is an array
-		$("#id_isRecurring").val(rowData.isRecurring);
+				$("#id_schedId").val(rowData.schedId);
+				$("#id_location").val(rowData.eventNo).trigger("change");
+				$("#id_event").val(rowData.locationId).trigger("change");
+				$("#id_startDate").val(rowData.startDate);
+				$("#id_endDate").val(rowData.endDate);
+				$("#id_startTime").val(rowData.startTime);
+				$("#id_startGrace").val(rowData.startGrace);
+				$("#id_endTime").val(rowData.endTime);
+				$("#id_endGrace").val(rowData.endGrace);
+				$("#id_recurrenceType").val(rowData.recurrenceType);
+				$("#id_recurrenceDays").val(rowData.recurrenceDays).trigger("change"); // Make sure `recurrenceDays` is an array
+				$("#id_isRecurring").val(rowData.isRecurring);
 
-		$(".modal-title-text").text("Update Entry");
-		$(".save-btn-text").text("Update");
-		$("#sched-modal").modal("show");
-	}
-
-	// Delete Confirmation Modal
-	else if (target.hasClass("deleteBtn")) {
-		const rowData = table.row(target.closest("tr")).data();
-
-		$("#delEventNo").text(rowData.schedId);
-		$("#delEventName").text(rowData.eventName);
-		$("#delEventType").text(rowData.locName); // location name
-		$("#delEventDesc").text(rowData.startDate + " to " + rowData.endDate);
-		$("#deleteEventNo").val(rowData.schedId);
-
-		$("#deleteConfirmModal").modal("show");
-	}
-});
-
-// Add New Schedule Button
-$("#addSched").click(function () {
-	$("#schedForm")[0].reset();
-	$("#id_schedId").val("");
-	$("#id_location").val("").trigger("change");
-	$("#id_event").val("").trigger("change");
-	$("#id_recurrenceDays").val(null).trigger("change");
-	$(".modal-title-text").text("Add New Entry");
-	$(".save-btn-text").text("Save");
-	$("#sched-modal").modal("show");
-});
-
-// Save/Update Schedule
-$("#saveSched").click(function (e) {
-	e.preventDefault();
-
-	const formData = {
-		schedId: $("#id_schedId").val(),
-		eventNo: $("#id_location").val(),
-		locationId: $("#id_event").val(),
-		startDate: $("#id_startDate").val(),
-		endDate: $("#id_endDate").val(),
-		startTime: $("#id_startTime").val(),
-		startGrace: $("#id_startGrace").val(),
-		endTime: $("#id_endTime").val(),
-		endGrace: $("#id_endGrace").val(),
-		recurrenceType: $("#id_recurrenceType").val(),
-		recurrenceDays: $("#id_recurrenceDays").val(), // This should be an array
-		isRecurring: $("#id_isRecurring").val(),
-		isActive: "Y",
-	};
-
-	$.ajax({
-		type: "POST",
-		url: "{% url 'scheduleSaveUpdate' %}",
-		data: {
-			...formData,
-			csrfmiddlewaretoken: "{{ csrf_token }}",
-		},
-		traditional: true, // important for sending arrays like recurrenceDays[]
-		success: function (response) {
-			if (response.Status == "Saved") {
-				Swal.fire({
-					position: "center",
-					icon: "success",
-					title: "Schedule Successfully Saved!",
-					showConfirmButton: false,
-					timer: 1500,
-				});
-
-				$("#event-table").DataTable().ajax.reload();
-				$("#sched-modal").modal("hide");
-			} else {
-				Swal.fire({
-					position: "center",
-					icon: "error",
-					title: "Failed to Save Schedule!",
-					text:"Server Error" + response,
-					showConfirmButton: false,
-					timer: 1500,
-				});
+				$(".modal-title-text").text("Update Entry");
+				$(".save-btn-text").text("Update");
+				$("#sched-modal").modal("show");
 			}
-		},
-		error: function (xhr) {
-			console.log("Error: " + xhr.responseText);
-		},
-	});
-});
 
-// Confirm Delete Button
-$("#confirmDeleteBtn").click(function () {
-	const delSchedId = $("#deleteEventNo").val();
+			// Delete Confirmation Modal
+			else if (target.hasClass("deleteBtn")) {
+				const rowData = table.row(target.closest("tr")).data();
 
-	$.ajax({
-		url: "{% url 'deleteEvent' %}",
-		type: "POST",
-		data: {
-			schedId: delSchedId,
-			csrfmiddlewaretoken: "{{ csrf_token }}",
-		},
-		success: function (response) {
-			if (response.Status === "Deleted") {
-				alert("Schedule deleted successfully!");
-				$("#deleteConfirmModal").modal("hide");
-				table.ajax.reload();
-			} else {
-				alert("Error: " + response.Message);
+				$("#delEventNo").text(rowData.schedId);
+				$("#delEventName").text(rowData.eventName);
+				$("#delEventType").text(rowData.locName); // location name
+				$("#delEventDesc").text(rowData.startDate + " to " + rowData.endDate);
+				$("#deleteEventNo").val(rowData.schedId);
+
+				$("#deleteConfirmModal").modal("show");
 			}
-		},
-		error: function () {
-			alert("Something went wrong. Please try again.");
-		},
-	});
-});
+		});
+
+
+
+		// Add New Schedule Button
+		$("#addSched").click(function () {
+		
+			$("#schedForm")[0].reset();
+			 $.get("{% url 'getNextPkeyId' %}?model=ManSchedule")
+				.done(function(data) {
+					$("#id_schedId").val(data.next_id);
+				});
+		
+			$("#id_location").val("").trigger("change");
+			$("#id_event").val("").trigger("change");
+			$("#id_recurrenceDays").val(null).trigger("change");
+			$(".modal-title-text").text("Add New Entry");
+			$(".save-btn-text").text("Save");
+			$("#sched-modal").modal("show");
+		});
+
+		// Save/Update Schedule
+		$("#saveSched").click(function (e) {
+			e.preventDefault();
+
+			const formData = {
+				schedId: $("#id_schedId").val(),
+				eventNo: $("#id_location").val(),
+				locationId: $("#id_event").val(),
+				startDate: $("#id_startDate").val(),
+				endDate: $("#id_endDate").val(),
+				startTime: $("#id_startTime").val(),
+				startGrace: $("#id_startGrace").val(),
+				endTime: $("#id_endTime").val(),
+				endGrace: $("#id_endGrace").val(),
+				recurrenceType: $("#id_recurrenceType").val(),
+				recurrenceDays: $("#id_recurrenceDays").val(), 
+				isRecurring: $("#id_isRecurring").val(),
+				isActive: "Y",
+			};
+
+			$.ajax({
+				type: "POST",
+				url: "{% url 'scheduleSaveUpdate' %}",
+				data: {
+					...formData,
+					csrfmiddlewaretoken: "{{ csrf_token }}",
+				},
+				traditional: true, // important for sending arrays like recurrenceDays[]
+				success: function (response) {
+					if (response.Status == "Saved") {
+						Swal.fire({
+							position: "center",
+							icon: "success",
+							title: "Schedule Successfully Saved!",
+							showConfirmButton: false,
+							timer: 1500,
+						});
+
+						$("#event-table").DataTable().ajax.reload();
+						$("#sched-modal").modal("hide");
+					} else {
+						Swal.fire({
+							position: "center",
+							icon: "error",
+							title: "Failed to Save Schedule!",
+							text:"Server Error" + response,
+							showConfirmButton: false,
+							timer: 1500,
+						});
+					}
+				},
+				error: function (xhr) {
+					console.log("Error: " + xhr.responseText);
+				},
+			});
+		});
+
+		// Confirm Delete Button
+		$("#confirmDeleteBtn").click(function () {
+			const delSchedId = $("#deleteEventNo").val();
+
+			$.ajax({
+				url: "{% url 'deleteEvent' %}",
+				type: "POST",
+				data: {
+					schedId: delSchedId,
+					csrfmiddlewaretoken: "{{ csrf_token }}",
+				},
+				success: function (response) {
+					if (response.Status === "Deleted") {
+						alert("Schedule deleted successfully!");
+						$("#deleteConfirmModal").modal("hide");
+						table.ajax.reload();
+					} else {
+						alert("Error: " + response.Message);
+					}
+				},
+				error: function () {
+					alert("Something went wrong. Please try again.");
+				},
+			});
+		});
 
 
 });

@@ -1,0 +1,630 @@
+{% extends 'amsApp/base.html' %} {% block content %}
+<div class="content-wrapper">
+	<!-- Content Header (Page header) -->
+	<div class="content-header">
+		<div class="container-fluid">
+			<div class="row mb-2">
+				<div class="col-sm-6">
+					<h1 class="m-0">Attendance Logs</h1>
+				</div>
+				<!-- /.col -->
+				<div class="col-sm-6">
+					<ol class="breadcrumb float-sm-right">
+						<li class="breadcrumb-item"><a href="#">Home</a></li>
+						<li class="breadcrumb-item active">Attendance Logs</li>
+					</ol>
+				</div>
+				<!-- /.col -->
+			</div>
+			<!-- /.row -->
+		</div>
+		<!-- /.container-fluid -->
+	</div>
+	<!-- /.content-header -->
+
+	<!-- Main content -->
+	<section class="content">
+		<div class="container-fluid">
+			<!-- Main row -->
+			<div class="row">
+				<section class="col-lg-12 connectedSortable">
+					<!-- Custom tabs (Charts with tabs)-->
+					<div class="card">
+						<div class="card-header">
+							<h3 class="card-title">
+								<i class="fas fa-chart-pie mr-1"></i>
+								Attendance Records
+							</h3>
+							<div class="card-tools">
+								<ul class="nav nav-pills">
+									<li class="nav-item">
+										<a
+											class="nav-link active"
+											href="#raw-logs"
+											data-toggle="tab"
+											>Logs</a
+										>
+									</li>
+									<li class="nav-item">
+										<a class="nav-link" href="#event-logs" data-toggle="tab"
+											>By Event</a
+										>
+									</li>
+									<li class="nav-item">
+										<a class="nav-link" href="#filter-logs" data-toggle="tab"
+											>By Office</a
+										>
+									</li>
+								</ul>
+							</div>
+						</div>
+						<!-- /.card-header -->
+						<div class="card-body">
+							<div class="tab-content p-0">
+								<!-- Raw Logs -->
+								<div
+									class="tab-pane active"
+									id="raw-logs"
+									style="position: relative"
+								>
+									<table
+										id="attendance-log-table"
+										class="table table-bordered table-striped"
+									>
+										<thead>
+											<tr>
+												<th>Punch No</th>
+												<th>System Date & Time</th>
+												<th>Shift No</th>
+												<th>Employee ID</th>
+												<th>PDS ID</th>
+												<th>Employee</th>
+												<th>Office</th>
+												<th>Punch Date</th>
+												<th>Punch Time In</th>
+												<th>Punch Time Out</th>
+												<th>Latitude</th>
+												<th>Longitude</th>
+											</tr>
+										</thead>
+									</table>
+								</div>
+								<!-- /Raw Logs -->
+
+								<!-- Event Logs -->
+								<div
+									class="tab-pane"
+									id="event-logs"
+									style="position: relative"
+								>
+									<div class="row">
+										<div class="col-12">
+											<div class="card">
+												<div class="card-body">
+													<form class="form-row align-items-end">
+														<div class="form-group col-md-4 mb-2">
+															<label for="id_location" class="mr-2 mb-0"
+																>Event:</label
+															>
+															<select
+																id="id_location"
+																name="location"
+																class="form-control"
+																data-placeholder="Select Event"
+															>
+																<option value="all" selected>All Events</option>
+																{% for event in events %}
+																<option value="{{ event.eventNo }}">
+																	{{ event.eventName }}
+																</option>
+																{% endfor %}
+															</select>
+														</div>
+														<div class="form-group col-md-2 mb-2">
+															<label for="start_date_event" class="mr-2 mb-0"
+																>Start Date:</label
+															>
+															<input
+																type="date"
+																id="start_date_event"
+																class="form-control"
+															/>
+														</div>
+														<div class="form-group col-md-2 mb-2">
+															<label for="end_date_event" class="mr-2 mb-0"
+																>End Date:</label
+															>
+															<input
+																type="date"
+																id="end_date_event"
+																class="form-control"
+															/>
+														</div>
+														<div
+															class="form-group col-md-2 mb-2 d-flex align-items-end"
+														>
+															<button
+																id="fetchEventBtn"
+																type="button"
+																class="btn btn-lg bg-gradient-info btn-block"
+															>
+																Fetch
+															</button>
+														</div>
+													</form>
+												</div>
+											</div>
+										</div>
+									</div>
+									<div class="row">
+										<div class="col-12">
+											<table
+												id="eventsTable"
+												class="table table-bordered table-striped"
+												style="width: 100%"
+											>
+												<thead>
+													<tr>
+														<th></th>
+														<th>Event Name</th>
+													</tr>
+												</thead>
+												<tbody></tbody>
+											</table>
+										</div>
+									</div>
+								</div>
+
+								<!-- Office Logs -->
+								<div
+									class="tab-pane"
+									id="filter-logs"
+									style="position: relative"
+								>
+									<div class="row">
+										<div class="col-12">
+											<div class="card">
+												<div class="card-body">
+													<form class="form-row align-items-end">
+														<div class="form-group col-md-3 mb-2">
+															<label for="office_search" class="mr-2 mb-0"
+																>Search:</label
+															>
+															<input
+																type="text"
+																id="office_search"
+																class="form-control"
+																placeholder="Search office..."
+															/>
+														</div>
+														<div class="form-group col-md-3 mb-2">
+															<label for="start_date_office" class="mr-2 mb-0"
+																>Start Date:</label
+															>
+															<input
+																type="date"
+																id="start_date_office"
+																class="form-control"
+															/>
+														</div>
+														<div class="form-group col-md-3 mb-2">
+															<label for="end_date_office" class="mr-2 mb-0"
+																>End Date:</label
+															>
+															<input
+																type="date"
+																id="end_date_office"
+																class="form-control"
+															/>
+														</div>
+														<div class="form-group col-md-2 mb-2">
+															<button
+																id="fetchOfficeBtn"
+																type="button"
+																class="btn btn-lg bg-gradient-info btn-block"
+															>
+																Fetch
+															</button>
+														</div>
+													</form>
+												</div>
+											</div>
+										</div>
+									</div>
+									<table
+										id="officeTable"
+										class="table table-bordered table-striped"
+										style="width: 100%"
+									>
+										<thead>
+											<tr>
+												<th></th>
+												<th>Office</th>
+											</tr>
+										</thead>
+										<tbody></tbody>
+									</table>
+								</div>
+								<!-- /office Logs -->
+							</div>
+						</div>
+						<!-- /.card-body -->
+					</div>
+					<!-- /.card -->
+				</section>
+			</div>
+			<!-- /.row (main row) -->
+		</div>
+		<!-- /.container-fluid -->
+	</section>
+	<!-- /.content -->
+</div>
+{% endblock %} {% block scripts %}
+
+<style>
+	#eventsTable td.dt-control,
+	#eventsTable th.dt-control {
+		width: 32px !important;
+		min-width: 32px !important;
+		max-width: 32px !important;
+		padding-left: 0.5rem !important;
+		padding-right: 0.5rem !important;
+		text-align: center;
+		vertical-align: middle;
+	}
+	/* Optional: Remove left/right padding for even tighter fit */
+	#eventsTable td.dt-control {
+		padding-left: 0.25rem !important;
+		padding-right: 0.25rem !important;
+	}
+
+	/* Arrow/caret for expand/collapse */
+	.emp-control,
+	.dt-control {
+		cursor: pointer;
+		text-align: center;
+		width: 32px;
+	}
+	.emp-control:before,
+	.dt-control:before {
+		font-family: "FontAwesome";
+		content: "\f0da"; /* fa-caret-right */
+		display: inline-block;
+	}
+	tr.shown .emp-control:before,
+	tr.shown .dt-control:before {
+		content: "\f0d7"; /* fa-caret-down */
+	}
+</style>
+
+<!-- Raw Logs -->
+<script>
+	$(document).ready(function () {
+		const dataFetch = "{% url 'attJsonList' %}";
+		// Fetch sample data for debugging
+		fetch(dataFetch)
+			.then((response) => response.json())
+			.then((data) => console.log(data))
+			.catch((error) => console.error("Error:", error));
+
+		// Initialize DataTable
+
+		const table = $("#attendance-log-table").DataTable({
+			responsive: true,
+			lengthChange: true,
+			pageLength: 10,
+			autoWidth: false,
+			lengthMenu: [10, 25, 50, 100],
+			dom:
+				"<'row mb-2'<'col-sm-6'B><'col-sm-6 d-flex justify-content-end'f>>" +
+				"<'row'<'col-sm-12'tr>>" +
+				"<'row mt-2'<'col-md-4'l><'col-md-4 d-flex justify-content-center'p><'col-md-4 d-flex justify-content-end'i>>",
+			ajax: {
+				url: dataFetch,
+				dataSrc: "data",
+			},
+			language: {
+				search: "",
+				searchPlaceholder: "Search...",
+			},
+			columns: [
+				{ data: "punchNo", title: "Punch No" },
+				{ data: "empId", title: "Employee ID" },
+				{ data: "pdsId", title: "PDS ID" },
+				{ data: "employee", title: "Employee" },
+				{ data: "office", title: "Office" },
+				{ data: "eventName", title: "Event" },
+				{
+					data: "systemDateTime",
+					title: "System Date & Time",
+					render: function (data, type, row) {
+						if (!data) return "";
+						const date = new Date(data);
+						return (
+							date.getFullYear() +
+							"-" +
+							String(date.getMonth() + 1).padStart(2, "0") +
+							"-" +
+							String(date.getDate()).padStart(2, "0") +
+							" " +
+							String(date.getHours()).padStart(2, "0") +
+							":" +
+							String(date.getMinutes()).padStart(2, "0") +
+							":" +
+							String(date.getSeconds()).padStart(2, "0")
+						);
+					},
+				},
+				{ data: "punchdate", title: "Punch Date" },
+				{ data: "punchTimeIn", title: "Punch Time In" },
+				{ data: "punchTimeOut", title: "Punch Time Out" },
+				{ data: "latitude", title: "Latitude" },
+				{ data: "longitude", title: "Longitude" },
+			],
+			buttons: ["copy", "csv", "excel", "pdf", "print", "colvis"],
+			order: [[0, "desc"]],
+		});
+
+		// Move buttons if using DataTables extensions
+		table
+			.buttons()
+			.container()
+			.appendTo("#attendance-log-table_wrapper .col-md-6:eq(0)");
+	});
+</script>
+
+<!-- event script -->
+<script>
+	$(document).ready(function () {
+		let eventsTable;
+
+		// Function to load data (with optional query string)
+		function loadEventsTable(queryString = "") {
+			const url =
+				"{% url 'attJsonListByEvent' %}" +
+				(queryString ? "?" + queryString : "");
+			$.getJSON(url, function (response) {
+				if ($.fn.DataTable.isDataTable("#eventsTable")) {
+					eventsTable.clear().destroy();
+					$("#eventsTable").empty();
+				}
+				eventsTable = $("#eventsTable").DataTable({
+					data: response.data,
+					columns: [
+						{
+							className: "dt-control",
+							orderable: false,
+							data: null,
+							defaultContent: "",
+							width: "32px",
+						},
+						{ data: "eventName", title: "Event Name" },
+					],
+					order: [[1, "asc"]],
+					autoWidth: false,
+					dom: "t<'row mt-2'<'col-md-4'l><'col-md-4 d-flex justify-content-center'p><'col-md-4 d-flex justify-content-end'i>>",
+				});
+
+				$("#eventsTable tbody").on("click", "td.dt-control", function () {
+					const tr = $(this).closest("tr");
+					const row = eventsTable.row(tr);
+
+					if (row.child.isShown()) {
+						row.child.hide();
+						tr.removeClass("shown");
+					} else {
+						row.child(format(row.data())).show();
+						tr.addClass("shown");
+					}
+				});
+			});
+		}
+
+		// Initial load (no filters)
+		loadEventsTable();
+
+		// Filter button
+		$("#fetchEventBtn").on("click", function () {
+			let eventNo = $("#id_location").val();
+			let start = $("#start_date_event").val();
+			let end = $("#end_date_event").val();
+
+			let queryParams = [];
+			if (eventNo && eventNo !== "all") queryParams.push(`eventNo=${eventNo}`);
+			if (start) queryParams.push(`start_date=${start}`);
+			if (end) queryParams.push(`end_date=${end}`);
+
+			loadEventsTable(queryParams.join("&"));
+		});
+
+		function format(eventData) {
+			let html = `
+            <input type="text" class="form-control form-control-sm mb-2 subtable-search" placeholder="Search...">
+            <table class="table table-bordered table-striped sub-table">
+                <thead>
+                    <tr>
+                        <th>Punch No</th>
+                        <th>System DateTime</th>
+                        <th>punchDate</th>
+                        <th>Employee</th>
+                        <th>Office</th>
+                        <th>Punch Time In</th>
+                        <th>Punch Time Out</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+			eventData.records.forEach(function (rec) {
+				html += `
+                <tr>
+                    <td>${rec.punchNo}</td>
+                    <td>${rec.systemDateTime}</td>
+                    <td>${rec.punchDate}</td>
+                    <td>${rec.employee}</td>
+                    <td>${rec.office}</td>
+                    <td>${rec.punchTimeIn}</td>
+                    <td>${rec.punchTimeOut}</td>
+                </tr>`;
+			});
+			html += `</tbody></table>`;
+			return html;
+		}
+
+		// Sub-table search
+		$(document).on("keyup", ".subtable-search", function () {
+			const value = $(this).val().toLowerCase();
+			const table = $(this).next("table.sub-table");
+			table.find("tbody tr").filter(function () {
+				$(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+			});
+		});
+	});
+</script>
+
+<!-- office script -->
+<script>
+	$(document).ready(function () {
+		let officeTable;
+
+		function loadOfficeTable(queryString = "") {
+			const url =
+				"{% url 'attJsonListByOfficeRange' %}" +
+				(queryString ? "?" + queryString : "");
+
+			$.getJSON(url, function (response) {
+				// Reset table if already initialized
+				if ($.fn.DataTable.isDataTable("#officeTable")) {
+					officeTable.clear().destroy();
+					$("#officeTable").empty();
+				}
+
+				const dataSet = Object.keys(response).map(function (office) {
+					return {
+						office: office,
+						employees: response[office],
+					};
+				});
+
+				officeTable = $("#officeTable").DataTable({
+					data: dataSet,
+					columns: [
+						{
+							className: "dt-control",
+							orderable: false,
+							data: null,
+							defaultContent: "",
+							width: "35px",
+						},
+						{ data: "office", title: "Office" },
+					],
+					order: [[0, "asc"]],
+					autoWidth: false,
+					dom: "t<'row mt-2'<'col-md-4'l><'col-md-4 d-flex justify-content-center'p><'col-md-4 d-flex justify-content-end'i>>",
+				});
+
+				$("#office_search").on("keyup", function () {
+					if (officeTable) {
+						officeTable.search(this.value).draw();
+					}
+				});
+				// Expand row for employees
+				$("#officeTable tbody").on("click", "td.dt-control", function () {
+					const tr = $(this).closest("tr");
+					const row = officeTable.row(tr);
+
+					if (row.child.isShown()) {
+						row.child.hide();
+						tr.removeClass("shown");
+					} else {
+						row.child(formatEmployees(row.data().employees)).show();
+						tr.addClass("shown");
+					}
+				});
+			});
+		}
+
+		function formatEmployees(employees) {
+			let html = `<div class="ml-3">
+			<input type="text" class="form-control form-control-sm mb-2 employee-search" placeholder="Search employee...">
+			<div class="employee-container">`;
+
+			Object.entries(employees).forEach(([key, logs]) => {
+				console.log("the keys and logs" + key, logs);
+				const [empId, empName] = key.split("|");
+				html += `
+				<div class="card mb-2 employee-card collapsed-card">
+					<div class="card-header p-2 bg-light bg-warning">
+						<strong>${empName}</strong> (${empId})
+						<div class="card-tools">
+						<button type="button" class="btn btn-block  btn-sm" " data-card-widget="collapse" title="Collapse">
+						 <i class="fas fa-plus"></i>
+						</button>
+	               </div>
+						</div>
+					<div class="card-body p-2">
+						<table class="table table-bordered table-sm sub-table">
+							<thead>
+								<tr>
+									<th>Punch No</th>
+									<th>System DateTime</th>
+									<th>Punch Date</th>
+									<th>Event</th>
+									<th>Punch In</th>
+									<th>Punch Out</th>
+									<th>Lat</th>
+									<th>Long</th>
+								</tr>
+							</thead>
+							<tbody>`;
+				logs.forEach((log) => {
+					html += `
+					<tr>
+						<td>${log.punchNo}</td>
+						<td>${log.systemDateTime}</td>
+						<td>${log.punchdate}</td>
+						<td>${log.eventName}</td>
+						<td>${log.punchTimeIn}</td>
+						<td>${log.punchTimeOut}</td>
+						<td>${log.latitude}</td>
+						<td>${log.longitude}</td>
+					</tr>`;
+				});
+				html += `
+							</tbody>
+						</table>
+					</div>
+				</div>`;
+			});
+
+			html += `</div></div>`;
+			return html;
+		}
+
+		// 🔍 Employee Search (not logs)
+		$(document).on("keyup", ".employee-search", function () {
+			const value = $(this).val().toLowerCase();
+			const container = $(this).siblings(".employee-container");
+
+			container.find(".employee-card").each(function () {
+				const text = $(this).text().toLowerCase();
+				$(this).toggle(text.indexOf(value) > -1);
+			});
+		});
+
+		// Fetch button
+		$("#fetchOfficeBtn").on("click", function () {
+			let start = $("#start_date_office").val();
+			let end = $("#end_date_office").val();
+
+			let queryParams = [];
+			if (start) queryParams.push(`start_date_office=${start}`);
+			if (end) queryParams.push(`end_date_office=${end}`);
+
+			loadOfficeTable(queryParams.join("&"));
+		});
+
+		// Initial load
+		loadOfficeTable();
+	});
+</script>
+
+{% endblock %}
