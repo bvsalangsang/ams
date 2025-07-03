@@ -158,7 +158,12 @@
 		$("#addEventType").click(function () {
 			
 			$("#eventTypeForm")[0].reset();
-			$("#id_eventNo").val("");
+			//$("#id_eventNo").val("");
+			$.get("{% url 'getNextPkeyId' %}?model=ManEventType")
+				.done(function(data) {
+					$("#id_eventTypeNo").val(data.next_id);
+				});
+
 			$(".modal-title-text").text("Add New Entry");
 			$(".save-btn-text").text("Save");
 			$("#event-type-modal").modal("show");

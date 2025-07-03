@@ -47,6 +47,11 @@
 ================================================================================
 =- WORK LOG -= FORMAT: YYMMDD - NO. OF DAYS - VERSION * NAME OF CODER *
 ================================================================================
+Version Control
+MAJOR	1	Incompatible API or logic changes; possibly breaking things
+MINOR	0	Backward-compatible new features
+PATCH	0	Bug fixes, performance improvements, or small tweaks
+
 '-------------------------------------------------------------------------------
 '=-250320 - 0001 - Version 0.0.1 - * BOB *
 '-------------------------------------------------------------------------------
@@ -372,6 +377,86 @@
   ***upload files on github  "dev-250623"***
   ***upload files on github  "dev-250623a"***
  
+'-------------------------------------------------------------------------------
+'=-250624- 0023 - Version 0.0.23 - * BOB *
+'-------------------------------------------------------------------------------
+=-views.py (amsApp)
+  * added function 'getNextPkeyId'
+
+=-urls.py
+  * added path 'getNextPkeyId'
+
+=-schedule.html 
+  * implemented function 'getNextPkeyId'
+
+'-------------------------------------------------------------------------------
+'=-250625- 0024 - Version 0.0.24 - * BOB *
+'-------------------------------------------------------------------------------
+=-event.html 
+  * implemented function 'getNextPkeyId' 
+
+=-event-type.html 
+  * implemented function 'getNextPkeyId' 
+
+=-map-location
+  * renamed to 'location.html' 
+  * path renamed from 'map-location' to 'location'
+  * view rename from 'map-location' to 'location'
+
+=-location.html 
+  * capable to update on mapping location 
+  
+
+=-sqlcommands.py (amsApp)
+  * added query 'delQueryLocationDet'
+
+'-------------------------------------------------------------------------------
+'=-250630- 0026 - Version 0.0.26 - * BOB *
+'-------------------------------------------------------------------------------
+=- attendance-view.html  
+  * added html file 
+
+=-view.py (amsApp)
+  * added view 'attendanceView'
+  * added function 'fetchAttendaceByEvent'
 
 
+=-urls.py (amsApp)
+  * added path 'attendanceView'
 
+  
+'-------------------------------------------------------------------------------
+'=-250701- 0027 - Version 0.0.27 - * BOB *
+'-------------------------------------------------------------------------------
+=- attendace-view.html 
+  * added script on attedance records 
+      - by Raw logs 
+      - by Event 
+      - by office 
+  
+
+
+'-------------------------------------------------------------------------------
+'=-250703- 0028 - Version 0.0.28 - * BOB *
+'-------------------------------------------------------------------------------
+=-views.py (amsApp)
+  * added functions 'getDashAttendance'
+  * added functions 'getDashEventPart'
+  * added functions 'getDashOffice'
+  * added functions 'getDashPunchesByWeekday'
+
+=-urls.py (amsApp)
+  * added path 'getDashAttendance'
+  * added path 'getDashEventPart'
+  * added path 'getDashOffice'
+  * added path 'getDashPunchesByWeekday'
+
+=-dashboad.html (<script>)
+  *  created function 'fetchDashboardData'
+  *  created function 'fetchAttendanceData'
+  *  created function 'fetchEventParticipationData' 
+  *  created function 'fetchOfficeAttendanceData'
+  *  created function 'fetchPunchesByWeekdayData'
+ 
+
+***upload files on github  "dev-250703"***

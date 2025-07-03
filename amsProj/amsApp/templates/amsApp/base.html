@@ -16,13 +16,13 @@
 			href="{% static 'amsApp/plugins/fontawesome-free/css/all.min.css' %}"
 		/>
 
-		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-		
-		<!-- custom css -->
-		 <link
+		<link
 			rel="stylesheet"
-			href="{% static 'amsApp/dist/css/custom.css' %}"
+			href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
 		/>
+
+		<!-- custom css -->
+		<link rel="stylesheet" href="{% static 'amsApp/dist/css/custom.css' %}" />
 
 		<!-- Google Font: Source Sans Pro -->
 		<link
@@ -35,8 +35,10 @@
 			href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css"
 		/>
 		<!-- Google Font: Quicksand -->
-		<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
+		<link
+			href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap"
+			rel="stylesheet"
+		/>
 
 		<link
 			rel="stylesheet"
@@ -51,22 +53,32 @@
 			href="{% static 'amsApp/plugins/datatables-buttons/css/buttons.bootstrap4.min.css' %}"
 		/>
 
-    	 <!-- select2 -->
-			<!-- <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" /> -->
-			<link rel="stylesheet" href="{% static 'amsApp/plugins/select2/css/select2.min.css' %}" />
-			  <link
+		<!-- select2 -->
+		<!-- <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" /> -->
+		<link
+			rel="stylesheet"
+			href="{% static 'amsApp/plugins/select2/css/select2.min.css' %}"
+		/>
+		<link
 			rel="stylesheet"
 			href="{% static 'amsApp/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css' %}"
-			/>
+		/>
 
-			<!-- Map Scripts -->
-		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+		<!-- Map Scripts -->
+		<link
+			rel="stylesheet"
+			href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+		/>
 
-
- <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css"/>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
-
+		<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+		<link
+			rel="stylesheet"
+			href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css"
+		/>
+		<link
+			rel="stylesheet"
+			href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css"
+		/>
 	</head>
 	<body class="hold-transition sidebar-mini layout-fixed">
 		<div class="wrapper">
@@ -158,19 +170,22 @@
 		<script src="{% static 'amsApp/plugins/datatables-buttons/js/buttons.html5.min.js' %}"></script>
 		<script src="{% static 'amsApp/plugins/datatables-buttons/js/buttons.print.min.js' %}"></script>
 		<script src="{% static 'amsApp/plugins/datatables-buttons/js/buttons.colVis.min.js' %}"></script>
-	
+
 		<!-- Select2 -->
 		<script src="{% static 'amsApp/plugins/select2/js/select2.full.min.js' %}"></script>
-  
-		 <!-- sweetalert2 App -->
-     	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-        
+
+		<!-- sweetalert2 App -->
+		<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 		<!-- Leaflet and related libraries -->
 		<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 		<script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js"></script>
 		<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
 
-		
+		<!-- chartJs -->
+		<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
 		{% block scripts %} {% endblock %}
 	</body>
 </html>

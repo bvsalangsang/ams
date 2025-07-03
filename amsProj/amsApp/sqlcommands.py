@@ -34,8 +34,8 @@ def fecthAttendanceLogs():
           """
     return sql
 
-def fetchAttendanceLogsByDateRange():
-    sql = """
+def fetchAttendanceLogsByDateRange(filterQuery=""):
+    sql = f"""
         SELECT pch.punchNo, 
                evt.eventName, 
                pch.empId, 
@@ -52,11 +52,35 @@ def fetchAttendanceLogsByDateRange():
                pch.isActive
           FROM punch_log pch
           LEFT JOIN man_event evt ON pch.eventNo = evt.eventNo
-         WHERE pch.isActive = 'Y'
-           AND pch.punchDate BETWEEN %s AND %s
+          WHERE pch.isActive = 'Y'
+          {filterQuery}          
          ORDER BY pch.punchNo DESC
     """
     return sql
+
+def fetchAttendaceByEvent(filterQuery=""):
+    sql = f"""
+        SELECT pch.punchNo, 
+               evt.eventName, 
+               pch.empId, 
+               pch.pdsId,
+               pch.employee, 
+               pch.office,
+               pch.punchDate, 
+               pch.punchTimeIn, 
+               pch.punchTimeOut, 
+               pch.latitude, 
+               pch.longitude, 
+               pch.systemDateTime, 
+               pch.isActive
+          FROM punch_log pch
+          LEFT JOIN man_event evt ON evt.eventNo = pch.eventNo
+          WHERE pch.isActive = 'Y'
+          {filterQuery}
+          ORDER BY pch.punchNo DESC
+    """
+    return sql
+
 
 #shift
 def fetchShift():
@@ -177,7 +201,7 @@ def fetchQueryLocation():
                locDet.latitude
                FROM man_location loc
                LEFT JOIN man_location_det locDet ON loc.locationId = locDet.locationId
-               WHERE loc.isActive = 'Y'
+               WHERE loc.isActive = 'Y' and locDet.isActive = 'Y'
         """
     return sql
 
@@ -199,6 +223,11 @@ def saveUpdateQueryLocation():
     """
     return sql
 
+def delQueryLocationDet():
+    sql = """
+        UPDATE man_location_det set isActive = 'N' WHERE locationId = %s
+        """
+    return sql
         
 def saveQueryLocationDet():
     sql = """
@@ -206,8 +235,6 @@ def saveQueryLocationDet():
         VALUES (%s, %s, %s, %s)
         """
     return sql
-
-
 
 #schedule
 def fetchQuerySchedule():
@@ -268,7 +295,6 @@ def delQuerySchedule():
     return sql  
 
 #set Schedule
-
 def setQuerySchedule():
     sql = """
         UPDATE schedule set isSet = %s WHERE schedId = %s  

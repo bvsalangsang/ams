@@ -25,24 +25,24 @@
                 <section class="col-lg-12 connectedSortable">
 					<div class="card">
 						<div class="card-header">
-								<button class="btn bg-gradient-success" id="addEvent">
-							 <i class="fas fa-plus mr-1"></i> Add Event
+								<button class="btn bg-gradient-success" id="addLocation">
+							 <i class="fas fa-plus mr-1"></i> Add Location
 							</button>
 						</div>
 						<!-- /.card-header -->
 						<div class="card-body">
 						<table id="locations-table" class="table table-bordered display" style="width:100%">
-                <thead>
-                    <tr>
-                        <th></th>
-                        <th>Location Id</th>
-                        <th>Name</th>
-                        <th>Address</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>Location Id</th>
+                                <th>Name</th>
+                                <th>Address</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                     </table>
 						</div>
 						<!-- /.card-body -->
 					</div>
@@ -50,19 +50,18 @@
 				</section>
 
 
-        <section class="col-lg-4">
-				 <div class="card">
-					<div class="card-header bg-gradient-primary">
-						<h3 class="card-title">
-							<i class="fas fa-calendar-alt mr-1"></i>
-							Location Details
-                        </h3>
-					</div>
-					 <div class="card-body">
-                        <!-- create a form base on LocationForm -->
+        <!-- <section class="col-lg-4">
+            <div class="card">
+                <div class="card-header bg-gradient-primary">
+                    <h3 class="card-title">
+                        <i class="fas fa-calendar-alt mr-1"></i>
+                        Location Details
+                    </h3>
+                </div>
+                <div class="card-body">
                         <form id="locForm" autocomplete="off">
                             {% csrf_token %}
-                           <div class="form-group">
+                            <div class="form-group">
                                 <label for="id_locationId">Location ID</label>
                                 <input
                                     type="text"
@@ -73,13 +72,12 @@
                                 />
                                 <small class="text-red text-muted mySpan"></small>
                             </div>
-
-                             <div class="form-group">
+                            <div class="form-group">
                                 <label for="id_locName">Location Name</label>
                                 {{ mapForm.locName }}
                                 <small class="text-red text-muted mySpan"></small>
                             </div>
-                              <div class="form-group">
+                            <div class="form-group">
                                 <label for="id_address">Address</label>
                                 {{ mapForm.address }}
                                 <small class="text-red text-muted mySpan"></small>
@@ -88,11 +86,11 @@
                                 <label for="id_coords">Coordinates</label>
                                 <select id="coords-list" multiple></select>
                             </div>
-				                     <button id="save-btn" class="btn btn-success">Save Polygon Coordinates</button>
+                            <button id="save-btn" class="btn btn-success">Save Polygon Coordinates</button>
                         </form>
-                    </div>
-
-				</section>
+                </div>
+            </div>
+		</section>
         <section class="col-lg-8">
             <div class="card">
                 <div class="card-header bg-gradient-primary">
@@ -105,18 +103,33 @@
                     <div id="map" style="height: 500px;"></div>
                   </div>
             </div>
-        </section>
+        </section> -->
 
-
-				
-			</div>
-		</div>
 		<!-- /.container-fluid -->
 	</section>
 	<!-- /.content -->
 </div>
-{% include 'amsApp/modals/event-modal.html' %}
-{% include 'amsApp/modals/schedule-modal.html' %}
+
+<div class="modal fade" id="viewLocationModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-gradient-info">
+        <h4 class="modal-title">View Location Polygon</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="view-map" style="height: 400px; width: 100%;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+{% include 'amsApp/modals/location-modal.html' %}
+
+
 
 {% endblock %}
 {% block scripts %}
@@ -214,7 +227,7 @@
 
 
 <script>
-$(function() {
+$(document).ready(function() {
     // --- DataTable Section ---
     const dataFetch = "{% url 'locationJsonList' %}";
 
@@ -244,6 +257,9 @@ $(function() {
                               </button>
                               <button class="btn btn-sm btn-danger delete-btn" data-id="${row.locationId}" title="Delete">
                                   <i class="fa-solid fa-trash"></i>
+                              </button>
+                              <button class="btn btn-sm btn-info view-btn" data-id="${row.locationId}" title="View">
+                                  <i class="fa-solid fa-eye"></i>
                               </button>
                           `;
                       }
@@ -281,17 +297,100 @@ $(function() {
         })
         .catch(error => console.error("Error:", error));
 
+   
+   	// Add New Schedule Button
+		$("#addLocation").click(function () {
+		
+			$("#locForm")[0].reset();
+			 $.get("{% url 'getNextPkeyId' %}?model=ManLocation")
+				.done(function(data) {
+					$("#id_locationId").val(data.next_id);
+				});
+
+            $("#formMode").val("save");
+			$("#id_locName").val("").trigger("change");
+			$("#id_address").val("").trigger("change");
+            $("#coords-list").empty();
+			$(".modal-title-text").text("Add New Entry");
+			$(".save-btn-text").text("Save");
+			$("#location-modal").modal("show");
+		});
+   
+    
+    //edit location 
+
+    $('#locations-table').on('click', '.edit-btn', function () {
+        const table = $('#locations-table').DataTable();
+        const rowData = table.row($(this).closest('tr')).data();
+
+        // Fill form fields
+        $("#formMode").val("update");
+        $("#id_locationId").val(rowData.locationId);
+        $("#id_locName").val(rowData.locName);
+        $("#id_address").val(rowData.address);
+
+        // Populate coordinates list
+        const $coordsList = $("#coords-list");
+        $coordsList.empty();
+        let coords = [];
+        if (rowData.coordinates && rowData.coordinates.length > 0) {
+            coords = rowData.coordinates.map(c => [parseFloat(c.latitude), parseFloat(c.longitude)]);
+            rowData.coordinates.forEach(function(coord) {
+                $coordsList.append(
+                    `<option value="${coord.latitude},${coord.longitude}" selected>
+                        ${coord.latitude}, ${coord.longitude}
+                    </option>`
+                );
+            });
+        }
+
+        // --- Leaflet polygon handling ---
+        drawnItems.clearLayers(); // Remove any existing polygons
+
+        if (coords.length > 0) {
+            const polygon = L.polygon(coords, {color: 'blue'}).addTo(drawnItems);
+            // Update currentPolygonCoords for save
+            window.currentPolygonCoords = coords;
+
+            // Zoom logic
+            if (coords.length === 1) {
+                map.setView(coords[0], 18);
+            } else if (coords.length > 1) {
+                map.fitBounds(polygon.getBounds());
+            }
+        } else {
+            // No coords, reset map view
+            map.setView([defaultLat, defaultLng], defaultZoom);
+            window.currentPolygonCoords = [];
+        }
+
+        setTimeout(() => map.invalidateSize(), 200);
+
+        // Set modal title and button text
+        $(".modal-title-text").text("Edit Location");
+        $(".save-btn-text").text("Update");
+
+        // Show modal
+        $("#location-modal").modal("show");
+    });   
+    
     // --- Leaflet Section ---
     var defaultLat = 7.085879174329339;
     var defaultLng = 125.61633294335483;
     var defaultZoom = 13;
 
     var map = L.map('map').setView([defaultLat, defaultLng], defaultZoom);
+    
+    $('#location-modal').on('shown.bs.modal', function () {
+        setTimeout(function() {
+            map.invalidateSize();
+        }, 200); // slight delay helps in some browsers
+    });
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
-
+  
     var marker = L.marker([defaultLat, defaultLng]).addTo(map);
     map.setView([defaultLat, defaultLng], 16);
 
@@ -315,7 +414,7 @@ $(function() {
     map.addControl(drawControl);
 
     var coordsList = document.getElementById('coords-list');
-    var saveBtn = document.getElementById('save-btn');
+    var saveBtn = document.getElementById('saveLocation');
     var currentPolygonCoords = [];
 
     map.on('draw:created', function (e) {
@@ -360,62 +459,112 @@ $(function() {
         });
       }
     });
+  
+    //save function 
+   saveBtn.addEventListener('click', function(e) {
+    e.preventDefault();
 
-    saveBtn.addEventListener('click', function(e) {
-      e.preventDefault();
+    if (currentPolygonCoords.length === 0) {
+        alert('No polygon selected or drawn.');
+        return;
+    }
 
-      if (currentPolygonCoords.length === 0) {
-          alert('No polygon selected or drawn.');
-          return;
-      }
+    const form = document.getElementById('locForm');
+    const formData = new FormData(form);
 
-      const form = document.getElementById('locForm');
-      const formData = new FormData(form);
+    let data = {
+        locationId: formData.get('locationId'),
+        locName: formData.get('locName'),
+        address: formData.get('address'),
+        isActive: 'Y',
+        coords: currentPolygonCoords.map(function(coord) {
+            return { latitude: coord[0], longitude: coord[1] };
+        })
+    };
 
-      let data = {
-          locationId: formData.get('locationId'),
-          locName: formData.get('locName'),
-          address: formData.get('address'),
-          isActive: 'Y',
-          coords: currentPolygonCoords.map(function(coord) {
-              return { latitude: coord[0], longitude: coord[1] };
-          })
-      };
+    // Determine save or update
+    const mode = formData.get('formMode') || 'save';
+    const url = `{% url 'saveLocation' %}?saveType=${mode}`;
 
-      fetch("{% url 'saveLocation' %}", {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json',
-              'X-CSRFToken': formData.get('csrfmiddlewaretoken')
-          },
-          body: JSON.stringify(data)
-      })
-      .then(response => response.json())
-      .then(result => {
-        if (result.Status === "Saved") {
-          Swal.fire({
-                    position: "center",
-                    icon: "success",
-                    title: "Location Successfully Saved!",
-                    showConfirmButton: false,
-                    timer: 1500,
-                  });
-
-          document.getElementById('locForm').reset();
-          coordsList.innerHTML = '';
-          currentPolygonCoords = [];
-          drawnItems.clearLayers();
-          } else {
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.Status === "Saved" || result.Status === "Updated") {
             Swal.fire({
-                    position: "center",
-                    icon: "error",
-                    title: 'Failed to save: ' + (result.Message || 'Unknown error'),
-                    showConfirmButton: false,
-                    timer: 1500,
-                  });
-          }
-      });
+                position: "center",
+                icon: "success",
+                title: `Location Successfully ${mode === "save" ? "Saved" : "Updated"}!`,
+                showConfirmButton: false,
+                timer: 1500,
+            });
+
+            document.getElementById('locForm').reset();
+            coordsList.innerHTML = '';
+            currentPolygonCoords = [];
+            drawnItems.clearLayers();
+
+            // Hide modal
+            $('#location-modal').modal('hide');
+
+            // Refresh DataTable
+            $('#locations-table').DataTable().ajax.reload(null, false);
+        } else {
+            Swal.fire({
+                position: "center",
+                icon: "error",
+                title: 'Failed to save: ' + (result.Message || 'Unknown error'),
+                showConfirmButton: false,
+                timer: 1500,
+            });
+        }
     });
+});
+    let viewMap, viewPolygon;
+
+$('#locations-table').on('click', '.view-btn', function () {
+    const rowData = $('#locations-table').DataTable().row($(this).closest('tr')).data();
+    const coords = (rowData.coordinates || []).map(coord => [parseFloat(coord.latitude), parseFloat(coord.longitude)]);
+
+    $('#viewLocationModal').modal('show');
+
+    setTimeout(function() {
+        // Initialize map only once
+        if (!viewMap) {
+            viewMap = L.map('view-map').setView([7.085879174329339, 125.61633294335483], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(viewMap);
+        } else {
+            viewMap.eachLayer(function (layer) {
+                if (layer instanceof L.Polygon || layer instanceof L.Marker) {
+                    viewMap.removeLayer(layer);
+                }
+            });
+        }
+
+        if (coords.length > 0) {
+            viewPolygon = L.polygon(coords, {color: 'blue'}).addTo(viewMap);
+            viewMap.fitBounds(viewPolygon.getBounds());
+        }
+        setTimeout(() => viewMap.invalidateSize(), 200);
+    }, 300); // Delay to ensure modal is visible
+});
+
+// Optional: Clear polygon when modal is closed
+$('#viewLocationModal').on('hidden.bs.modal', function () {
+    if (viewMap && viewPolygon) {
+        viewMap.removeLayer(viewPolygon);
+        viewPolygon = null;
+    }
+});
+
 });
 </script>
    

@@ -1,0 +1,102 @@
+<!-- Add/Edit Event Modal -->
+<div class="modal fade" id="location-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <form id="locForm" autocomplete="off">
+        {% csrf_token %}
+         <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+
+                <!-- Modal Header -->
+                <div class="modal-header bg-gradient-secondary">
+                    <h4 class="modal-title d-flex align-items-center">
+                        <i class="fas fa-calendar-alt mr-2"></i>
+                        <span class="modal-title-text">Add New Entry</span>
+                    </h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="modal-body">
+                    <div class="row">
+                        <section class="col-lg-4">
+                            <div class="card">
+                                <div class="card-header bg-gradient-primary">
+                                    <h3 class="card-title">
+                                        <i class="fas fa-calendar-alt mr-1"></i>
+                                        Location Details
+                                    </h3>
+                                </div>
+                                <div class="card-body">
+                                <!-- create a form base on LocationForm -->
+                                            {% csrf_token %}
+                                            <input type="hidden" id="formMode" name="formMode" value="save">
+                                            <div class="form-group">
+                                                <label for="id_locationId">Location ID</label>
+                                                <input
+                                                    disabled
+                                                    type="text"
+                                                    name="locationId"
+                                                    id="id_locationId"
+                                                    class="form-control"
+                                                    placeholder="Auto-generated or existing ID"
+                                                />
+                                                <small class="text-red text-muted mySpan"></small>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label for="id_locName">Location Name</label>
+                                                {{ mapForm.locName }}
+                                                <small class="text-red text-muted mySpan"></small>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="id_address">Address</label>
+                                                {{ mapForm.address }}
+                                                <small class="text-red text-muted mySpan"></small>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="id_coords">Coordinates</label>
+                                                <select id="coords-list" multiple></select>
+                                            </div>
+
+                                        
+                                </div>      
+                            </div>
+                        
+                        </section>
+                        <section class="col-lg-8">
+                            <div class="card">
+                                <div class="card-header bg-gradient-primary">
+                                    <h3 class="card-title">
+                                        <i class="fas fa-map-marker-alt mr-1"></i>
+                                        Map Location    
+                                    </h3>
+                                </div>
+                                <div class="card-body">
+                                    <div id="map" style="height: 500px;"></div>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer bg-light border-top-0 px-4 py-3 justify-content-end rounded-bottom">
+                    <button
+                            type="submit"
+                            id="saveLocation" 
+                            class="btn btn-success"
+                            
+                        >
+                            <i class="fas fa-save mr-1"></i> <span class="save-btn-text">Save</span>
+                    </button>
+                    <button type="button"  class="btn btn-danger mr-2" data-dismiss="modal">
+                        <i class="fas fa-times mr-1"></i> Cancel
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </form>
+</div>
+<!-- /.modal -->
