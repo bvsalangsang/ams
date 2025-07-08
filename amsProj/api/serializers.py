@@ -4,8 +4,7 @@ from amsApp.models import *
 class PunchSerializer(serializers.ModelSerializer):
     class Meta:
         model = PunchLog
-        exclude = ['systemDateTime']  
-        # fields  = '__all__'
+        fields  = '__all__'
 
 class ShiftSerializer(serializers.ModelSerializer):
     class Meta: 

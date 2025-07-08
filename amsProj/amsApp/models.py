@@ -48,7 +48,7 @@ class PunchLog(models.Model):
     longitude = models.CharField(max_length=30)
     officeId = models.CharField(max_length=10, null=True, blank=True)
     office = models.CharField(max_length=400, null=True, blank=True)
-    systemDateTime = models.DateTimeField(null=True, blank=True)
+    # systemDateTime = models.DateTimeField(null=True, blank=True)
     isActive = models.CharField(max_length=1,default='Y')
 
     class Meta: 
