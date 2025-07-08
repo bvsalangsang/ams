@@ -434,8 +434,6 @@ PATCH	0	Bug fixes, performance improvements, or small tweaks
       - by Event 
       - by office 
   
-
-
 '-------------------------------------------------------------------------------
 '=-250703- 0028 - Version 0.0.28 - * BOB *
 '-------------------------------------------------------------------------------
@@ -460,3 +458,27 @@ PATCH	0	Bug fixes, performance improvements, or small tweaks
  
 
 ***upload files on github  "dev-250703"***
+
+'-------------------------------------------------------------------------------
+'=-250707- 0029 - Version 0.0.29 - * BOB *
+'-------------------------------------------------------------------------------
+***added library "requests" <=- pip install requests***
+
+=-views.py (amsApp)
+  * added function 'fetchAndParseUsers'
+  * added function 'check_attendance'
+  * added function 'api_attendance_json'
+
+* urls.py (amsApp)
+  * added path for 'fetchAndParseUsers'
+  * added path for 'check_attendance'
+  * added path for 'api_attendance_json'
+
+'-------------------------------------------------------------------------------
+'=-250708- 0030 - Version 0.0.30 - * BOB *
+'-------------------------------------------------------------------------------
+=-models.py 
+  * removed 'auto_now_add = true' on 'systemDateTime' column
+
+
+  ***upload files on github  "dev-250708"***

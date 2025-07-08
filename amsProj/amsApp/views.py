@@ -6,7 +6,9 @@ from django.views.decorators.csrf import csrf_exempt
 from collections import defaultdict
 from django.apps import apps
 from django.db.models import Max
+import requests
 import json
+from datetime import datetime
 from .sqlcommands import * 
 from .sqlparams import *
 from .forms import *    
@@ -844,6 +846,108 @@ def getDashPunchesByWeekday(request):
         for row in rows
     ]
     return JsonResponse({"punches_by_weekday": data})
+
+# API parsing 
+def fetchAndParseUsers(request):
+    api_url = "https://hris.usep.edu.ph/api/dashboard/view-users?token=496871859d96697ba10536775445fd8f"
+
+    try:
+        response = requests.get(api_url)
+        response.raise_for_status()  
+
+        json_response = response.json()
+
+        users_raw = json_response.get('data', '[]')
+        users = json.loads(users_raw)  # Now it's a list of dicts
+     
+        names = [user.get("NAME", "") for user in users]
+
+        # return JsonResponse({
+        #     "status": "success",
+        #     "count": len(users),
+        #     "names": names,
+        #     "pretty_users": users
+        # }, json_dumps_params={'indent': 2})  # Pretty-printing in response
+
+        return JsonResponse({
+                    "status": "success",
+                    "count": len(users),
+                    "usep_users": users
+                }, json_dumps_params={'indent': 2}) 
+    
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)})
+
+
+def check_attendance(event_no=None, target_date=None):
+    # Map eventNo to the field we want to check
+    event_requirements = {
+        "1": "punchTimeIn",   # Flag Ceremony
+        "2": "punchTimeOut",  # Flag Retreat
+    }
+
+    required_field = event_requirements.get(str(event_no), "punchTimeIn")
+
+    # 1st API: Employee master list
+    hris_url = "https://hris.usep.edu.ph/api/dashboard/view-users?token=496871859d96697ba10536775445fd8f"
+    hris_res = requests.get(hris_url).json()
+    master_list = json.loads(hris_res.get("data", "[]"))
+
+    # 2nd API: All punch logs
+    punch_url = "http://127.0.0.1:8000/dashboard/api/get-data-punch"
+    punch_res = requests.get(punch_url).json()
+    punch_logs = punch_res if isinstance(punch_res, list) else [punch_res]
+
+    # Filter logs by event and date if provided
+    if event_no and target_date:
+        filtered_logs = [
+            log for log in punch_logs
+            if str(log.get("eventNo")) == str(event_no) and log.get("punchdate") == target_date
+        ]
+    else:
+        filtered_logs = punch_logs
+
+    full_result = []
+
+    for emp in master_list:
+        emp_id = str(emp.get("id"))
+        log = None  # Initialize log for safe fallback
+
+        # Find logs for employee
+        matching_logs = [
+            l for l in filtered_logs if str(l.get("pdsId")) == emp_id
+        ]
+
+        if matching_logs:
+            for log in matching_logs:
+                is_present = log.get(required_field) != "00:00:00"
+                log["status"] = "Present" if is_present else "Absent"
+                full_result.append(log)
+        else:
+            full_result.append({
+                "punchNo": None,
+                "eventNo": event_no,
+                "empId": None,
+                "pdsId": emp_id,
+                "employee": emp.get("NAME"),
+                "punchdate": target_date or "Unknown",
+                "punchTimeIn": "00:00:00",
+                "punchTimeOut": "00:00:00",
+                "latitude": None,
+                "longitude": None,
+                "officeId": None,
+                "office": emp.get("DEPARTMENT"),
+                "systemDateTime": datetime.now().isoformat(),  # fallback timestamp
+                "isActive": "N",
+                "status": "Absent"
+            })
+    return full_result
+
+def api_attendance_json(request):
+    event_no = request.GET.get("eventNo")     # optional
+    target_date = request.GET.get("date")     # optional
+    result = check_attendance(event_no, target_date)
+    return JsonResponse(result, safe=False, json_dumps_params={'indent': 2})
 
 #print 
 def printView(request):
