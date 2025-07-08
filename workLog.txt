@@ -479,6 +479,18 @@ PATCH	0	Bug fixes, performance improvements, or small tweaks
 '-------------------------------------------------------------------------------
 =-models.py 
   * removed 'auto_now_add = true' on 'systemDateTime' column
+  * commented 'systemDateTime' column
+  * created model 'tamperPunchLog'
+
+=-serializers.py 
+  * added 'TamperSerializer'
+
+=-views.py (API)
+  * added function 'addTamperLog'
+  * added function 'serverTime'
+
+=-urls.py (API)
+  * added path for 'addTamperLog'
 
 
   ***upload files on github  "dev-250708"***

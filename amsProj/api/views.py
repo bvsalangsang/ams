@@ -2,6 +2,9 @@ from django.db import connection
 from rest_framework.response import Response 
 from rest_framework import status
 from rest_framework.decorators import api_view
+from django.http import JsonResponse
+from django.utils import timezone
+import pytz
 from amsApp.models import *
 from api.sqlcommands import *
 from api.sqlparams import *
@@ -92,6 +95,20 @@ def addPunchLog(request):
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+def addTamperLog(request):
+    serializer = TamperSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  
+
+@api_view(['GET'])
+def serverTime(request):
+    pst = pytz.timezone('Asia/Manila')
+    localTime = timezone.now().astimezone(pst)
+    return JsonResponse({'serverTime': localTime.isoformat()})
 
 # Shift API
 @api_view(['GET'])
