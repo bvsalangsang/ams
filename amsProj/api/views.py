@@ -9,6 +9,7 @@ from .serializers import *
 
 
 
+
 # Punch log API
 @api_view(['GET'])
 def getDataPunch(request):
@@ -91,7 +92,6 @@ def addPunchLog(request):
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 # Shift API
 @api_view(['GET'])

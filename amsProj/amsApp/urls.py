@@ -55,6 +55,10 @@ urlpatterns = [
     path('dashboard/set-schedule/', setScheduleView, name='setScheduleView'),
     path('dashboard/setSchedule/', setSchedule, name='setSchedule'),      
 
+    # API fetch and parse users
+    path('dashboard/fetch-parse-users/', fetchAndParseUsers, name='fetchAndParseUsers'),
+    path('dashboard/attendance-json/', api_attendance_json, name='api_attendance_json'),
+
     #print
     path('dashboard/print-logs/', printView, name='printView'),
 ] 
