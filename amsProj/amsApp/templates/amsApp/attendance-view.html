@@ -439,31 +439,53 @@
 
 		function format(eventData) {
 			let html = `
-            <input type="text" class="form-control form-control-sm mb-2 subtable-search" placeholder="Search...">
-            <table class="table table-bordered table-striped sub-table">
-                <thead>
-                    <tr>
-                        <th>Punch No</th>
-                        <th>System DateTime</th>
-                        <th>punchDate</th>
-                        <th>Employee</th>
-                        <th>Office</th>
-                        <th>Punch Time In</th>
-                        <th>Punch Time Out</th>
-                    </tr>
-                </thead>
-                <tbody>`;
+			<input type="text" class="form-control form-control-sm mb-2 subtable-search" placeholder="Search...">
+			<table class="table table-bordered table-striped sub-table">
+				<thead>
+					<tr class="text-center">
+						<th>Punch No</th>
+						<th>Employee</th>
+						<th>Office</th>
+						<th>System Date</th>
+						<th>punchDate</th>
+						<th>System Time</th>
+						<th>Punch Time In</th>
+						<th>Punch Time Out</th>
+					</tr>
+				</thead>
+				<tbody>`;
 			eventData.records.forEach(function (rec) {
+				// Split systemDateTime into date and time
+				let sysDate = "";
+				let sysTime = "";
+				if (rec.systemDateTime) {
+					const dt = new Date(rec.systemDateTime);
+					sysDate =
+						dt.getFullYear() +
+						"-" +
+						String(dt.getMonth() + 1).padStart(2, "0") +
+						"-" +
+						String(dt.getDate()).padStart(2, "0");
+					sysTime =
+						String(dt.getHours()).padStart(2, "0") +
+						":" +
+						String(dt.getMinutes()).padStart(2, "0") +
+						":" +
+						String(dt.getSeconds()).padStart(2, "0");
+				}
 				html += `
-                <tr>
-                    <td>${rec.punchNo}</td>
-                    <td>${rec.systemDateTime}</td>
-                    <td>${rec.punchDate}</td>
-                    <td>${rec.employee}</td>
-                    <td>${rec.office}</td>
-                    <td>${rec.punchTimeIn}</td>
-                    <td>${rec.punchTimeOut}</td>
-                </tr>`;
+            <tr>
+                <td class="text-center">${rec.punchNo}</td>
+                <td>${rec.employee}</td>
+                <td>${rec.office}</td>
+                <td>${sysDate}</td>
+                <td>${rec.punchDate || rec.punchdate || ""}</td>
+                <td>${sysTime}</td>
+                <td>${rec.punchTimeIn}</td>
+                <td>${rec.punchTimeOut}</td>
+             
+               
+            </tr>`;
 			});
 			html += `</tbody></table>`;
 			return html;

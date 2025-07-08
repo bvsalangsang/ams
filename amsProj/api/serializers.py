@@ -6,6 +6,12 @@ class PunchSerializer(serializers.ModelSerializer):
         model = PunchLog
         fields  = '__all__'
 
+
+class TamperSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PunchLogTamper
+        fields  = '__all__'
+
 class ShiftSerializer(serializers.ModelSerializer):
     class Meta: 
         model = ManShift
