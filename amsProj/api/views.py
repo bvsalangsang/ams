@@ -10,9 +10,6 @@ from api.sqlcommands import *
 from api.sqlparams import *
 from .serializers import *
 
-
-
-
 # Punch log API
 @api_view(['GET'])
 def getDataPunch(request):

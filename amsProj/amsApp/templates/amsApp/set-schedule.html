@@ -94,6 +94,37 @@
   </div>
 </div>
 
+<!-- Cancel Schedule Modal -->
+<div class="modal fade" id="cancelScheduleModal" tabindex="-1" role="dialog" aria-labelledby="cancelScheduleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-danger">
+        <h5 class="modal-title" id="cancelScheduleModalLabel"><i class="fas fa-ban mr-2"></i>Cancel Scheduled Event</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form id="cancelScheduleForm">
+        <div class="modal-body">
+          <input type="hidden" name="schedId" id="cancelSchedId">
+          <div class="form-group">
+            <label for="cancelDate">Date of Cancellation</label>
+            <input type="date" class="form-control" id="cancelDate" name="cancelDate" required>
+          </div>
+          <div class="form-group">
+            <label for="cancelReason">Reason</label>
+            <textarea class="form-control" id="cancelReason" name="cancelReason" rows="3" placeholder="Optional reason (e.g., Heavy rain)"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-danger">Submit Cancellation</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 {% include 'amsApp/modals/event-modal.html' %}
 {% include 'amsApp/modals/schedule-modal.html' %}
 
@@ -221,6 +252,13 @@ $(document).on("click", ".view-schedule-btn", function () {
 
 $("#schedule-details").html(detailsHTML);
 
+$("#schedule-details").append(`
+    <div class="mt-3 text-right">
+        <button class="btn btn-danger btn-sm" id="cancelScheduleBtn" data-schedid="${schedule.schedId}">
+            <i class="fas fa-ban mr-1"></i> Cancel This Schedule
+        </button>
+    </div>
+`);
 
 });
 
@@ -324,6 +362,47 @@ $("#confirmToggleModal").on("hidden.bs.modal", function () {
 
 });
 
+$(document).on("click", "#cancelScheduleBtn", function () {
+    const schedId = $(this).data("schedid");
+    $("#cancelSchedId").val(schedId);
+    $("#cancelScheduleModal").modal("show");
+});
+
+// Handle cancel form submission
+$("#cancelScheduleForm").submit(function (e) {
+    e.preventDefault();
+    const schedId = $("#cancelSchedId").val();
+    const cancelDate = $("#cancelDate").val();
+    const cancelReason = $("#cancelReason").val();
+
+    $.ajax({
+        url: "{% url 'cancelSchedule' %}",  // <-- you'll create this view
+        type: "POST",
+        data: {
+            schedId: schedId,
+            cancelDate: cancelDate,
+            cancelReason: cancelReason,
+            csrfmiddlewaretoken: "{{ csrf_token }}"
+        },
+        success: function (response) {
+            $("#cancelScheduleModal").modal("hide");
+            Swal.fire({
+                icon: "success",
+                title: "Schedule Cancelled",
+                text: response.message || "The event has been marked as canceled.",
+                timer: 2000,
+                showConfirmButton: false
+            });
+        },
+        error: function (xhr) {
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Unable to cancel the schedule. Try again.",
+            });
+        }
+    });
+});
 
 </script>
 {% endblock %}

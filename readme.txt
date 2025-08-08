@@ -19,6 +19,9 @@
 6. install django-extensions(v3.2.3)
   - pip install django-extensions
 
+7. install xhtml2pdf (0.2.17)
+  - pip install xhtml2pdf
+
 '-------------------------------------------------------------------------------
 '=- SETTINGS WEBHOST   ****
 '-------------------------------------------------------------------------------

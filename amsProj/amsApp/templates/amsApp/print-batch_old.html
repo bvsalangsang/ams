@@ -1,0 +1,154 @@
+{% load static %}
+{% load ams_extras %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Attendance Report</title>
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 1cm;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 11px;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid #ccc;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+        }
+        .logo img {
+            height: 50px;
+            margin-right: 10px;
+        }
+        .title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .subtitle {
+            font-size: 12px;
+            color: #555;
+        }
+        .meta {
+            margin: 10px 0;
+            font-size: 11px;
+        }
+        .section-title {
+            font-weight: bold;
+            background: #f0f0f0;
+            padding: 4px 8px;
+            margin: 10px 0 2px;
+            font-size: 12px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 14px;
+        }
+        th, td {
+            border: 1px solid #aaa;
+            padding-left: 3px;
+            padding-top: 3px;
+            text-align: left;
+            font-size: 12px;
+            width: 30px;
+        }
+        th[scope="col"] {
+            background-color: #eee;
+        }
+        .footer {
+            margin-top: 40px;
+            font-size: 10px;
+            text-align: center;
+        }
+        .signature-section {
+            margin-top: 40px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .signature-box {
+            width: 45%;
+        }
+        .signature-line {
+            margin-top: 40px;
+            border-top: 1px solid #000;
+            width: 80%;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <span class="title">USeP-AMS</span>
+            <span class="subtitle">Official Attendance Report</span>
+        </div>
+    </div>
+
+    <div class="meta">
+        <strong>Date:</strong> June 1 - June 30 2025<br />
+        <strong>Office:</strong> SDMD<br />
+    </div>
+
+    <div class="section-title">Present(s)</div>
+    <table>
+        <tr>
+            <th scope="col" rowspan="2">#</th>
+            <th scope="col" rowspan="2">Employee</th>
+            <th scope="col" rowspan="2">Position</th>
+            <th scope="col" colspan="2">Week 1</th>
+            <th scope="col" colspan="2">Week 2</th>
+            <th scope="col" colspan="2">Week 3</th>
+            <th scope="col" colspan="2">Week 4</th>
+        </tr>
+        <tr>
+            <th scope="col">Flag Ceremony</th>
+            <th scope="col">Flag Retreat</th>
+           <th scope="col">Flag Ceremony</th>
+            <th scope="col">Flag Retreat</th>
+            <th scope="col">Flag Ceremony</th>
+            <th scope="col">Flag Retreat</th>
+            <th scope="col">Flag Ceremony</th>
+            <th scope="col">Flag Retreat</th>
+        </tr>
+		<tr>
+            <td>1</td>
+            <td>John Doe</td>
+            <td>Manager</td>
+            <td>8:00 AM</td>
+            <td>5:00 PM</td>
+             <td>8:00 AM</td>
+            <td>5:00 PM</td>
+             <td>8:00 AM</td>
+            <td>5:00 PM</td>
+             <td>8:00 AM</td>
+            <td>5:00 PM</td>
+		</tr>
+		
+    </table>
+
+    <div class="signature-section">
+        <div class="signature-box">
+            <p><strong>Prepared by:</strong></p>
+            <div class="signature-line">Signature over Printed Name</div>
+        </div>
+        <div class="signature-box" style="text-align: right">
+            <p><strong>Generated:</strong></p>
+            <p>{{ date }}</p>
+        </div>
+    </div>
+
+    <div class="footer">
+        &copy; 2025 University of Southeastern Philippines – AMS. All rights reserved.
+    </div>
+</body>
+</html>

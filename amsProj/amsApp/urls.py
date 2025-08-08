@@ -40,6 +40,9 @@ urlpatterns = [
     path('dashboard/schedule/', scheduleView, name='scheduleView'),
     path('dashboard/scheduleJsonList/', scheduleJsonList, name='scheduleJsonList'),
     path('dashboard/scheduleSaveUpdate/', scheduleSaveUpdate, name='scheduleSaveUpdate'),
+    path('dashboard/cancelSchedule/', cancelSchedule, name='cancelSchedule'),
+
+    
 
     path('dashboard/event-type/', shiftTypeView, name='shiftTypeView'),
     path('dashboard/shiftTypeJsonList/', shiftTypeJsonList, name='shiftTypeJsonList'),
@@ -51,14 +54,27 @@ urlpatterns = [
     path('dashboard/locationJsonList/', locationJsonList, name='locationJsonList'),
     path('dashboard/locationSaveUpdate/', saveLocation, name='saveLocation'),
 
+    #reports
+     path('dashboard/attendance-eval/', evalPunchLogView, name='evalPunchLogView'),
+   
     #Control Panel
     path('dashboard/set-schedule/', setScheduleView, name='setScheduleView'),
     path('dashboard/setSchedule/', setSchedule, name='setSchedule'),      
 
     # API fetch and parse users
     path('dashboard/fetch-parse-users/', fetchAndParseUsers, name='fetchAndParseUsers'),
-    path('dashboard/attendance-json/', api_attendance_json, name='api_attendance_json'),
+    path('dashboard/fetch-eval-punchlogs/', evaluatePunchLogs, name='evaluatePunchLogs'),
+    path('dashboard/attJsonListEvalLogs/', attJsonListEvalLogs, name='attJsonListEvalLogs'),
+    path('dashboard/evalLogStatusJsonList/', evalLogStatusJsonList, name='evalLogStatusJsonList'),
+    path('dashboard/evaluateRawLogs/', evaluateRawLogs, name='evaluateRawLogs'),
 
     #print
     path('dashboard/print-logs/', printView, name='printView'),
+    path('dashboard/print-batch-per-office/', printBatchReport, name='printBatchReport'),
+    
+    #celery 
+    path('dashboard/start-evaluation/', start_evaluation, name='startEvaluation'),
+    path('dashboard/evaluation-progress/', evaluation_progress, name='evaluationProgress'),
+
+#    path('evaluate-punch-stream/', streamEvaluatePunchLogs, name='streamEvaluatePunchLogs'),
 ] 
