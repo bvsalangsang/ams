@@ -1,0 +1,1048 @@
+{% extends 'amsApp/base.html' %} {% block content %}
+<div class="content-wrapper">
+	<!-- Content Header (Page header) -->
+	<!-- <div class="content-header">
+		<div class="container-fluid">
+			<div class="row mb-2">
+				<div class="col-sm-6">
+					<h1 class="m-0">Reports</h1>
+				</div>
+				<div class="col-sm-6">
+					<ol class="breadcrumb float-sm-right">
+						<li class="breadcrumb-item"><a href="#">Home</a></li>
+						<li class="breadcrumb-item active">Reports</li>
+					</ol>
+				</div>
+			</div>
+		</div>
+	</div> -->
+	<!-- /.content-header -->
+
+	<!-- Main content -->
+	<section class="content">
+		<div class="container-fluid">
+			<!-- Main row -->
+			<div class="row p-2">
+				<div class="col-3">
+					<div class="info-box">
+						<span class="info-box-icon bg-success">
+							<i class="fa-solid fa-location-crosshairs"></i>
+						</span>
+						<div class="info-box-content">
+							<span class="info-box-text">New Punch Logs</span>
+							<span class="info-box-number" id="newPunchLogs">0</span>
+						</div>
+					</div>
+				</div>
+
+				<div class="col-3">
+					<div class="info-box">
+						<span class="info-box-icon bg-navy">
+							<i class="fa-solid fa-clock"></i>
+						</span>
+						<div class="info-box-content">
+							<span class="info-box-text">Total Punch Logs</span>
+							<span class="info-box-number" id="totalPunchLogs">0</span>
+						</div>
+					</div>
+				</div>
+
+				<div class="col-3">
+					<div class="info-box">
+						<span class="info-box-icon bg-indigo">
+							<i class="fa-solid fa-user-clock"></i>
+						</span>
+						<div class="info-box-content">
+							<span class="info-box-text">Total Evaluated Logs</span>
+							<span class="info-box-number" id="totalEvalLogs">0</span>
+						</div>
+					</div>
+				</div>
+
+				<div class="col-3 d-flex pb-3">
+					<button
+						id="fetchPunchEval"
+						type="button"
+						class="btn btn-block btn-outline-success btn-lg h-100 w-100"
+						style="font-size: 1.25rem !important; font-weight: 600"
+					>
+						Evaluate Logs
+					</button>
+				</div>
+			</div>
+
+			<div id="evalReminderNotice" class="card bg-gradient shadow mb-4 d-none">
+				<div class="card-body text-center py-5">
+					<div class="text-warning mb-3">
+						<i class="fas fa-exclamation-triangle fa-4x"></i>
+					</div>
+					<h3 class="text-warning font-weight-bold mb-3">
+						Pending Log Evaluation
+					</h3>
+					<p class="lead mb-0">
+						New punch logs were detected. Please run
+						<strong>Evaluate Logs</strong> to refresh attendance records and
+						display updated employee logs.
+					</p>
+				</div>
+			</div>
+
+			<section id="attendanceSection" class="col-lg-12 connectedSortable">
+				<!-- Custom tabs (Charts with tabs)-->
+				<div class="card">
+					<div class="card-header">
+						<h3 class="card-title">
+							<i class="fas fa-chart-pie mr-1"></i>
+							Attendance Details
+						</h3>
+					</div>
+					<!-- /.card-header -->
+					<div class="card-body">
+						<!-- Raw Logs -->
+						<div class="col-12">
+							<div class="card">
+								<div class="card-body">
+									<div class="mb-2">
+										<div class="row g-2">
+											<div class="col-md-4">
+												<label for="id_campus" class="small mb-1">Campus</label>
+												<select
+													id="id_campus"
+													name="campus"
+													class="form-control form-control-sm"
+													data-placeholder="Select Campus"
+												>
+													<option value="">Select Campus</option>
+													{% for c in campuses %}
+													<option value="{{ c.campusId }}">
+														{{ c.campus }}
+													</option>
+													{% endfor %}
+												</select>
+
+												<label for="event" class="small mb-1">Event</label>
+												<select
+													id="id_event"
+													name="event"
+													class="form-control form-control-sm"
+													data-placeholder="Select Event"
+												>
+													<option value="all" selected>All Events</option>
+													{% for event in events %}
+													<option value="{{ event.eventNo }}">
+														{{ event.eventName }}
+													</option>
+													{% endfor %}
+												</select>
+											</div>
+
+											<div class="col-8">
+												<div class="row">
+													<div class="col-md-4">
+														<label for="id_office" class="small mb-1"
+															>Office</label
+														>
+														<select
+															id="id_office"
+															name="office"
+															class="form-control form-control-sm"
+															data-placeholder="Select Office"
+														>
+															<option value="">Select Office</option>
+															{% for office in offices %}
+															<option value="{{ office.officeId }}">
+																{{ office.office }}
+															</option>
+															{% endfor %}
+														</select>
+													</div>
+													<div class="col-md-4">
+														<label for="start-date" class="small mb-1"
+															>Date Range</label
+														>
+														<select
+															id="id_dateRage"
+															name="event"
+															class="form-control form-control-sm"
+															data-placeholder="Select Event"
+														>
+															<option value="1">Last 7 Days</option>
+															<option value="2">Last Month</option>
+															<option value="2">This Month</option>
+														</select>
+													</div>
+													<div class="col-md-2">
+														<label for="action" class="small mb-1"
+															>Action</label
+														>
+														<button
+															class="btn btn-sm btn-primary form-control form-control-sm"
+															id="genReportBtn"
+														>
+															<i class="fas fa-sync-alt"></i> Generate Report
+														</button>
+													</div>
+												</div>
+
+												<div class="row">
+													<div class="col-md-4">
+														<label for="start-date" class="small mb-1"
+															>Start Date</label
+														>
+														<input
+															type="date"
+															id="start_date_emp"
+															class="form-control form-control-sm"
+															placeholder="Start Date"
+														/>
+													</div>
+
+													<div class="col-md-4">
+														<label for="end-date" class="small mb-1"
+															>End Date</label
+														>
+
+														<input
+															type="date"
+															id="end_date_emp"
+															class="form-control form-control-sm"
+															placeholder="End Date"
+														/>
+													</div>
+													<div class="col-md-2">
+														<label for="action" class="small mb-1"></label>
+														<button
+															class="btn btn-sm btn-primary form-control form-control-sm"
+															id="fetchEmpBtn"
+														>
+															<i class="fas fa-sync-alt"></i> Load Employee Logs
+														</button>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-12">
+							<div
+								id="officeTablePlaceholder"
+								class="card card-outline card-secondary shadow-sm"
+							>
+								<div class="card-body text-center text-muted py-5">
+									<i class="fas fa-users fa-3x mb-3 text-gray"></i>
+									<h4 class="mb-2">No Employee Logs Loaded</h4>
+									<p class="mb-0">
+										Click
+										<span class="font-italic">“Load Employee Logs”</span> to
+										fetch attendance data.
+									</p>
+								</div>
+							</div>
+							<table
+								id="officeTable"
+								class="table table-bordered table-hover w-100 d-none"
+							>
+								<thead>
+									<tr>
+										<th></th>
+										<th>Office</th>
+									</tr>
+								</thead>
+								<tbody></tbody>
+							</table>
+						</div>
+					</div>
+					<!-- /.card-body -->
+				</div>
+				<!-- /.card -->
+			</section>
+
+			<!-- Evaluation Progress Modal -->
+			<div
+				class="modal fade"
+				id="evalLogModal"
+				tabindex="-1"
+				aria-labelledby="evalLogModalLabel"
+				aria-hidden="true"
+				role="dialog"
+			>
+				<div class="modal-dialog modal-lg modal-dialog-scrollable">
+					<div class="modal-content">
+						<div class="modal-header bg-gradient-secondary">
+							<h5 class="modal-title" id="evalLogModalLabel">
+								<span class="modal-title-text">Add New Entry</span>
+							</h5>
+							<button
+								type="button"
+								class="close"
+								data-dismiss="modal"
+								aria-label="Close"
+							>
+								<span aria-hidden="true">&times;</span>
+							</button>
+						</div>
+						<div class="modal-body">
+							<div id="evalProgressContainer" class="text-center py-4">
+								<div
+									class="progress mx-auto"
+									style="height: 25px; max-width: 400px"
+								>
+									<div
+										id="evalProgressBar"
+										class="progress-bar progress-bar-striped progress-bar-animated bg-info"
+										role="progressbar"
+										style="width: 0%"
+										aria-valuenow="0"
+										aria-valuemin="0"
+										aria-valuemax="100"
+									>
+										0%
+									</div>
+								</div>
+								<div id="evalProgressText" class="mt-2 text-muted">
+									Evaluating, please wait...
+								</div>
+								<div id="evalLiveLogs" class="mt-4 text-left px-3" style="max-height: 300px; overflow-y: auto; font-family: monospace; font-size: 0.9rem;">
+									<!-- Logs will stream here -->
+								</div>
+							</div>
+						</div>
+						<div
+							class="modal-footer bg-light border-top-0 px-4 py-3 justify-content-end rounded-bottom"
+						>
+							<span id="evalStatus" class="text-muted me-auto"></span>
+							<!-- <button
+								type="button"
+								class="btn btn-danger mr-2"
+								data-dismiss="modal"
+							>
+								<i class="fas fa-times mr-1"></i> Close
+							</button> -->
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- /.row (main row) -->
+		</div>
+		<!-- /.container-fluid -->
+	</section>
+	<!-- /.content -->
+</div>
+{% endblock %} {% block scripts %}
+<style>
+	.card-header {
+		font-weight: 600;
+		font-size: 0.95rem;
+	}
+
+	#officeTable thead th {
+		background-color: #f8f9fa;
+		color: #343a40;
+		font-size: 0.875rem;
+		text-transform: uppercase;
+		letter-spacing: 0.5px;
+	}
+
+	#officeTable tbody td {
+		font-size: 0.85rem;
+		vertical-align: middle;
+	}
+
+	.dataTables_wrapper .dataTables_paginate .paginate_button {
+		padding: 0.25rem 0.6rem;
+		margin: 0 2px;
+		border-radius: 0.25rem;
+	}
+
+	.dataTables_wrapper .dataTables_length select {
+		padding: 0.25rem;
+	}
+
+	.dataTables_info {
+		font-size: 0.8rem;
+	}
+
+	.dataTables_filter input {
+		height: 30px;
+	}
+	.highlight-flash {
+		animation: flashHighlight 1s ease;
+	}
+	@keyframes flashHighlight {
+		0% {
+			background-color: #d1e7dd;
+		}
+		50% {
+			background-color: #a3cfbb;
+		}
+		100% {
+			background-color: transparent;
+		}
+	}
+</style>
+<!-- <script>
+	$(document).ready(function () {
+		function updateCounterWithEffect(selector, newValue) {
+			const $el = $(selector);
+			const currentVal = parseInt($el.text(), 10) || 0;
+
+			if (currentVal !== newValue) {
+				$el.text(newValue);
+				$el.addClass("highlight-flash");
+				setTimeout(() => {
+					$el.removeClass("highlight-flash");
+				}, 1000);
+			}
+		}
+		// Call your Django endpoint
+		fetch("{% url 'evaluateRawLogs' %}")
+			.then((response) => response.json())
+			.then((data) => {
+				console.log(data);
+				const $alert = $("#logStatusAlert");
+				const $evalNotice = $("#evalReminderNotice");
+				const $attendanceSection = $("#attendanceSection");
+
+				// $("#newPunchLogs").text(data.newPunchLogEntries || 0);
+				// $("#totalPunchLogs").text(data.currentPunchCount || 0);
+				// $("#totalEvalLogs").text(data.evalLogCount || 0);
+
+				updateCounterWithEffect("#newPunchLogs", data.newPunchLogEntries || 0);
+				updateCounterWithEffect("#totalPunchLogs", data.currentPunchCount || 0);
+				updateCounterWithEffect("#totalEvalLogs", data.lastEvalPunchCount || 0);
+
+				if (data.status === "pending") {
+					// Show the alert and evaluate reminder
+					$alert.removeClass("d-none").addClass("show");
+					$("#alertMessage").text(
+						"🟡 New punch logs detected. Please evaluate to update attendance records."
+					);
+
+					$evalNotice.removeClass("d-none").addClass("show");
+					$attendanceSection.addClass("d-none");
+
+					$("#fetchPunchEval")
+						.removeClass("btn-outline-secondary")
+						.addClass("btn-outline-success")
+						.text("Evaluate Logs (" + data.newPunchLogEntries + " new)");
+				} else {
+					// All good: show records and hide alerts
+					$alert.addClass("d-none").removeClass("show");
+					$evalNotice.addClass("d-none").removeClass("show");
+					$attendanceSection.removeClass("d-none");
+
+					$("#fetchPunchEval")
+						.removeClass("btn-outline-success")
+						.addClass("btn-outline-secondary")
+						.text("No New Logs");
+				}
+			})
+			.catch((error) => {
+				console.error("Error fetching log counts:", error);
+			});
+	});
+</script> -->
+
+<script>
+	function refreshPunchLogStats() {
+		console.log("refreshPunchLogStats");
+		const $alert = $("#logStatusAlert");
+		const $evalNotice = $("#evalReminderNotice");
+		const $attendanceSection = $("#attendanceSection");
+		const $evalBtn = $("#fetchPunchEval");
+
+		fetch("{% url 'evaluateRawLogs' %}")
+			.then((response) => response.json())
+			.then((data) => {
+				if (data) {
+					const punchLogsElem = document.getElementById("totalPunchLogs");
+					const evaluatedElem = document.getElementById("totalEvalLogs"); // ✅ fix here
+					const newPunchElem = document.getElementById("newPunchLogs");
+
+					if (punchLogsElem && evaluatedElem && newPunchElem) {
+						punchLogsElem.textContent = data.storedPunchCount ?? "0";
+						evaluatedElem.textContent = data.lastEvalPkey ?? "0";
+						newPunchElem.textContent = data.newPunchLogEntries ?? "0";
+					} else {
+						console.warn("❗ One or more stat elements not found in DOM.");
+					}
+				}
+				if (data.status === "pending" && data.newPunchLogEntries > 0) {
+					$alert.removeClass("d-none").addClass("show");
+					$evalNotice.removeClass("d-none").addClass("show");
+					$attendanceSection.addClass("d-none");
+					$evalBtn
+						.removeClass("btn-outline-secondary")
+						.addClass("btn-outline-success")
+						.prop("disabled", false) // ✅ enable button
+						.text("Evaluate Logs (" + data.newPunchLogEntries + " new)");
+				} else {
+					$alert.addClass("d-none").removeClass("show");
+					$evalNotice.addClass("d-none").removeClass("show");
+					$attendanceSection.removeClass("d-none");
+
+					$evalBtn
+						.removeClass("btn-outline-success")
+						.addClass("btn-outline-secondary")
+						.prop("disabled", true) // ✅ disable button
+						.text("No New Logs");
+					// $("#fetchPunchEval")
+					// 	.removeClass("btn-outline-success")
+					// 	.addClass("btn-outline-secondary")
+					// 	.text("No New Logs");
+				}
+			})
+			.catch((error) => {
+				// console.log("Error fetching log counts:", error);
+			});
+	}
+
+	$(document).ready(function () {
+		refreshPunchLogStats(); // 👈 Run on page load
+	});
+</script>
+
+<script>
+	// $(function () {
+	// 	$("#id_event").select2({
+	// 		theme: "bootstrap4",
+	// 		width: "100%",
+	// 		allowClear: true,
+	// 	});
+	// });
+	$(document).ready(function () {
+		let officeTable;
+
+		function loadOfficeTable(queryString = "") {
+			const url =
+				"{% url 'attJsonListEvalLogs' %}?groupby=employee" +
+				(queryString ? "&" + queryString : "");
+
+			console.log(url);
+
+			$.getJSON(url, function (response) {
+				$("#officeTablePlaceholder").addClass("d-none");
+				$("#officeTable").removeClass("d-none");
+
+				if ($.fn.DataTable.isDataTable("#officeTable")) {
+					officeTable.clear().destroy();
+					$("#officeTable").empty();
+				}
+
+				const dataSet = Object.keys(response).map(function (employeeKey) {
+					const match = employeeKey.match(/^(.*)\s+\((.*)\)$/);
+					const eventName = match ? match[1].trim() : employeeKey;
+					const date = match ? match[2].trim() : "";
+
+					return {
+						employeeKey: employeeKey,
+						eventName: eventName, // ✅ pass this along
+						date: date, // ✅ pass this along
+						events: response[employeeKey],
+					};
+				});
+
+				officeTable = $("#officeTable").DataTable({
+					data: dataSet,
+					columns: [
+						{
+							className: "dt-control",
+							orderable: false,
+							data: null,
+							defaultContent: "",
+							width: "35px",
+						},
+						{ data: "employeeKey", title: "Event(s)" },
+					],
+					order: [[1, "asc"]],
+					autoWidth: false,
+					dom: "t<'row mt-2'<'col-md-3'l><'col-md-3 text-right'p><'col-md-6 text-right'i>>",
+				});
+
+				// Expand employee → event-date → logs
+				$("#officeTable tbody").on("click", "td.dt-control", function () {
+					const tr = $(this).closest("tr");
+					const row = officeTable.row(tr);
+
+					if (row.child.isShown()) {
+						row.child.hide();
+						tr.removeClass("shown");
+					} else {
+						const { employeeKey, events } = row.data();
+						const match = employeeKey.match(/^(.*)\s+\((.*)\)$/);
+						const eventName = match ? match[1].trim() : employeeKey;
+						const date = match ? match[2].trim() : "";
+
+						// 🔍 Sub-table row filter per card
+						tr.next("tr")
+							.find(".employee-search")
+							.off("keyup") // prevent double binding
+							.on("keyup", function () {
+								const val = $(this).val().toLowerCase();
+								const table = $(this).closest(".card-body").find(".sub-table");
+
+								if ($.fn.DataTable.isDataTable(table)) {
+									table.DataTable().search(val).draw();
+								}
+							});
+
+						// 🔍 Event card title filter (optional)
+						tr.next("tr")
+							.find(".subtable-search")
+							.off("keyup")
+							.on("keyup", function () {
+								const val = $(this).val().toLowerCase();
+								const container = $(this).siblings(".event-container");
+
+								container.find(".card").each(function () {
+									const text = $(this).text().toLowerCase();
+									$(this).toggle(text.includes(val));
+								});
+							});
+
+						tr.next("tr")
+							.find(".subtable-status-filter")
+							.off("change")
+							.on("change", function () {
+								const val = $(this).val();
+								const table = $(this).closest(".card-body").find(".sub-table");
+
+								if ($.fn.DataTable.isDataTable(table)) {
+									table.DataTable().column(7).search(val).draw(); // column 7 = Status
+								}
+							});
+
+						row.child(formatEmployeeEvents(events, eventName, date)).show();
+						tr.addClass("shown");
+
+						setTimeout(() => {
+							tr.next("tr")
+								.find(".sub-table")
+								.each(function () {
+									if (!$.fn.DataTable.isDataTable(this)) {
+										const dt = $(this).DataTable({
+											dom: "rt<'row mt-2'<'col-sm-4'l><'col-sm-3 text-right'p> <'col-sm-2 text-center'i>>",
+											buttons: ["csv", "pdf", "print"],
+											pageLength: 25,
+											lengthMenu: [5, 10, 25, 50, 100, 150, 200],
+											lengthChange: true,
+											ordering: true,
+											columnDefs: [
+												{
+													targets: "_all",
+													className: "align-middle text-center",
+												},
+											],
+										});
+
+										const buttonsContainer = $(this)
+											.closest(".card-body")
+											.find(".export-btn-container");
+										if (buttonsContainer.length) {
+											dt.buttons().container().appendTo(buttonsContainer);
+										}
+									}
+								});
+						}, 50); // slight
+					}
+				});
+			});
+		}
+
+		function formatEmployeeEvents(offices, eventName, date) {
+			let html = `
+					<input type="text" class="form-control form-control-sm mb-2 subtable-search" placeholder="Search logs...">
+					<div class="event-container">`;
+
+			Object.entries(offices).forEach(([eventKey, logs]) => {
+				const officeName = eventKey;
+				html += `
+					<div class="card mb-2 collapsed-card">
+						<div class="card-header  p-2">
+							<strong data-event="${eventName}" data-date="${date}">${officeName}</strong>
+							<div class="card-tools">
+								<div class="card-tools">
+									<button type="button" class="btn bg-secondary btn-sm" data-card-widget="collapse">
+										<i class="fas fa-plus"></i>
+									</button>
+								</div>
+							</div>
+						</div>
+						<div class="card-body p-2">
+							<div class ="row">
+								<div class="col-md-2">
+									<label for="employee_search" class="small mb-1">Search</label>
+									<input
+										type="text"
+										class="form-control form-control-sm employee-search mb-2"
+										placeholder="value..."
+										/>
+									</div>
+
+									<div class="col-md-2">
+										<label for="employee_search" class="small mb-1">Status</label>
+										<select class="form-control form-control-sm subtable-status-filter">
+											<option value="">All</option>
+											<option value="Present">Present</option>
+											<option value="Absent">Absent</option>
+										</select>
+								
+									</div>
+									<div class="col-md-2"> 
+										<label for="action" class="small mb-1"></label>
+										<button class="btn btn-sm btn-secondary form-control form-control-sm printLogsBtn">
+
+											<i class="fa-solid fa-print"></i> Print Logs
+										</button>
+									</div>
+									<div class="col-md-2">
+										<label class="small mb-1 d-block">&nbsp;</label>
+										<div class="export-btn-container"></div>
+									</div>
+									
+							</div>	
+
+
+						<table class="table table-bordered table-striped table-sm sub-table">
+							<thead>
+							<tr class="text-center">
+								<th>Punch No</th>
+								<th>Employee</th>
+								<th>System Date</th>
+								<th>Punch Date</th>
+								<th>System Time</th>
+								<th>Punch In</th>
+								<th>Punch Out</th>
+								<th>Status</th>
+							</tr>
+							</thead>
+							<tbody>`;
+
+				logs.forEach((rec) => {
+					let sysDate = "",
+						sysTime = "";
+					if (rec.systemDateTime) {
+						const dt = new Date(rec.systemDateTime);
+						sysDate = dt.toISOString().split("T")[0];
+						sysTime = dt.toTimeString().split(" ")[0];
+					} else {
+						sysTime = "N/A";
+						sysDate = "N/A";
+					}
+
+					let status = "";
+					let rowClass = "";
+					switch (rec.attStatusId) {
+						case "1":
+							statusBadge = '<span class="badge badge-success">Present</span>';
+							textClass = "text-success font-weight-bold";
+							break;
+						case "2":
+							statusBadge = '<span class="badge badge-danger">Absent</span>';
+							textClass = "text-danger font-weight-normal";
+							break;
+						default:
+							statusBadge =
+								'<span class="badge badge-secondary">Unknown</span>';
+							textClass = "text-muted";
+					}
+
+					html += `
+					<tr>
+						<td class="text-center ${textClass}">${
+						rec.evalPunchNo || rec.punchNo || ""
+					}</td>
+						<td class="${textClass}">${rec.employee || ""}</td>
+						<td class="${textClass}">${sysDate}</td>
+						<td class="${textClass}">${rec.punchDate || rec.punchdate || ""}</td>
+						<td class="${textClass}">${sysTime}</td>
+						<td class="${textClass}">${rec.punchTimeIn || ""}</td>
+						<td class="${textClass}">${rec.punchTimeOut || ""}</td>
+						<td class="text-center">${statusBadge}</td>
+					</tr>`;
+				});
+
+				html += `
+							</tbody>
+						</table>
+						</div>
+					</div>`;
+			});
+
+			html += `</div>`;
+			return html;
+		} // Fetch button with filter combination
+
+		$(document).on("keyup", ".subtable-search", function () {
+			const value = $(this).val().toLowerCase();
+			const container = $(this).siblings(".event-container");
+
+			container.find(".card").each(function () {
+				const text = $(this).text().toLowerCase();
+				$(this).toggle(text.includes(value));
+			});
+		});
+		$("#fetchEmpBtn").on("click", function () {
+			const start = $("#start_date_emp").val();
+			const end = $("#end_date_emp").val();
+			const emp = $("#filter_employee").val();
+			const office = $("#id_office").val();
+			const status = $("#filter_status").val();
+			const eventNo = $("#id_event").val();
+			const campus = $("#id_campus").val();
+
+			let queryParams = [];
+			if (start) queryParams.push("startdate=" + start);
+			if (end) queryParams.push("enddate=" + end);
+			if (emp) queryParams.push("employee=" + emp);
+			if (office) queryParams.push("office=" + office);
+			if (status) queryParams.push("attstatusid=" + status);
+			if (campus) queryParams.push("campusid=" + campus);
+			if (eventNo && eventNo !== "all") queryParams.push("event=" + eventNo);
+
+			loadOfficeTable(queryParams.join("&"));
+		});
+
+		// Initial load
+
+		$(document).on("click", ".printLogsBtn", function () {
+			console.log("Print logs clicked");
+
+			// Get the event card context
+			const $card = $(this).closest(".card");
+			const $strong = $card.find(".card-header strong"); // 👈 define this first
+
+			//const headerText = $card.find(".card-header strong").text();
+			// const [eventName, date] = headerText.split("|").map((s) => s.trim());
+			const eventName = $strong.data("event") || "";
+			const date = $strong.data("date") || "";
+			const officeName = $strong.text().trim();
+
+			const logs = [];
+
+			$card.find("tbody tr").each(function () {
+				const $tds = $(this).find("td");
+				const punchIn = $tds.eq(5).text().trim();
+				const punchOut = $tds.eq(6).text().trim();
+				const statusText = $tds.eq(7).text().trim();
+
+				logs.push({
+					punchNo: $tds.eq(0).text().trim(),
+					employee: $tds.eq(1).text().trim(),
+					systemTime: $tds.eq(4).text().trim(),
+					punchTimeIn: punchIn === "00:00:00" ? "--:--:--" : punchIn,
+					punchTimeOut: punchOut === "00:00:00" ? "--:--:--" : punchOut,
+					status: statusText === "Present" ? "1" : "2",
+				});
+			});
+
+			console.log(eventName);
+			console.log(date);
+			console.log(officeName);
+
+			const data = {
+				event: eventName,
+				date: date,
+				office: officeName,
+				presents: logs.filter((l) => l.status === "1"),
+				absents: logs.filter((l) => l.status === "2"),
+			};
+			console.log(data); // ✅ Check if all is populated
+
+			//const encoded = encodeURIComponent(btoa(JSON.stringify(data)));
+			const encoded = encodeURIComponent(
+				btoa(unescape(encodeURIComponent(JSON.stringify(data))))
+			);
+			window.open("{% url 'printView' %}?data=" + encoded, "_blank");
+		});
+
+		//	loadOfficeTable();
+	});
+</script>
+
+<!-- Live Evaluation Script USING SSE-->
+<script>
+document.getElementById("fetchPunchEval").addEventListener("click", function () {
+    const evalProgressBar = document.getElementById("evalProgressBar");
+    const evalProgressText = document.getElementById("evalProgressText");
+    const progressContainer = document.getElementById("evalProgressContainer");
+    const status = document.getElementById("evalStatus");
+    const evalLiveLogs = document.getElementById("evalLiveLogs");
+
+    const $alert = $("#logStatusAlert");
+    const $evalNotice = $("#evalReminderNotice");
+    const $attendanceSection = $("#attendanceSection");
+    const $fetchButton = $("#fetchPunchEval");
+
+    // Reset UI
+    evalProgressBar.style.width = "0%";
+    evalProgressBar.innerText = "0%";
+    evalProgressBar.setAttribute("aria-valuenow", "0");
+    evalProgressText.textContent = "Evaluating, please wait...";
+    evalLiveLogs.innerHTML = "";
+    status.textContent = "";
+    progressContainer.classList.remove("d-none");
+
+    // Show modal
+    $("#evalLogModal").modal("show");
+
+    let totalMessages = 0;
+    let processedMessages = 0;
+    let percent = 0;
+
+    // Use EventSource for SSE
+    const source = new EventSource("{% url 'evaluatePunchLogs' %}");
+
+    source.onmessage = function (event) {
+        const data = JSON.parse(event.data);
+
+        // Append live log
+        const logLine = document.createElement("div");
+        logLine.textContent = data.message;
+        evalLiveLogs.appendChild(logLine);
+        evalLiveLogs.scrollTop = evalLiveLogs.scrollHeight; // auto-scroll
+
+        // Update progress (just a simple estimation: each message increases %)
+        processedMessages++;
+        percent = Math.min(100, Math.floor((processedMessages / 200) * 100)); 
+        // ^ Adjust "200" if you know the expected number of messages for a full run
+        evalProgressBar.style.width = percent + "%";
+        evalProgressBar.innerText = percent + "%";
+        evalProgressBar.setAttribute("aria-valuenow", percent);
+    };
+
+    // Handle custom "close" event from SSE
+    source.addEventListener("close", function (event) {
+        const data = JSON.parse(event.data);
+        evalProgressText.textContent = "Evaluation complete.";
+        status.textContent = data.message;
+
+        evalProgressBar.style.width = "100%";
+        evalProgressBar.innerText = "100%";
+        evalProgressBar.setAttribute("aria-valuenow", "100");
+
+        // Call refreshPunchLogStats after completion
+        refreshPunchLogStats();
+
+        $alert.addClass("d-none").removeClass("show");
+        $evalNotice.addClass("d-none").removeClass("show");
+        $attendanceSection.removeClass("d-none");
+
+        $fetchButton
+            .removeClass("btn-outline-success")
+            .addClass("btn-outline-secondary")
+            .text("No New Logs");
+
+        source.close();
+    });
+
+    source.onerror = function (err) {
+        console.error("SSE connection error", err);
+        evalProgressText.textContent = "Error occurred.";
+        status.textContent = "❌ Evaluation failed.";
+        source.close();
+    };
+});
+</script>
+
+<!-- Live Evaluation Script USING Celery-->
+<!-- <script>
+document.getElementById("fetchPunchEval").addEventListener("click", function () {
+    const bar = document.getElementById("evalProgressBar");
+    const text = document.getElementById("evalProgressText");
+    const logBox = document.getElementById("evalLiveLogs");
+    const status = document.getElementById("evalStatus");
+    const btn = document.getElementById("fetchPunchEval");
+
+    // Reset UI
+    bar.style.width = "0%";
+    bar.innerText = "0%";
+    bar.setAttribute("aria-valuenow", "0");
+    logBox.innerHTML = "";
+    text.textContent = "Evaluating, please wait...";
+    status.textContent = "";
+    btn.disabled = true;
+
+    // Show modal
+    $("#evalLogModal").modal("show");
+
+    // Step 1: Start background task
+    fetch("{% url 'startEvaluation' %}")
+        .then(res => res.json())
+        .then(data => {
+            const taskId = data.task_id;
+            console.log("🎯 Task started with ID:", taskId);
+
+            // Step 2: Begin polling progress
+            let pollInterval = setInterval(() => {
+                fetch("{% url 'evaluationProgress' %}?task_id=" + taskId)
+                    .then(res => res.json())
+                    .then(progress => {
+                        const percent = progress.percent;
+                        const logs = progress.logs || [];
+
+                        // Update progress bar
+                        bar.style.width = percent + "%";
+                        bar.innerText = percent + "%";
+                        bar.setAttribute("aria-valuenow", percent);
+
+                        // Update logs
+                        logBox.innerHTML = logs.map(log => `<div>${log}</div>`).join('');
+                        logBox.scrollTop = logBox.scrollHeight;
+
+                        // Complete
+                        if (percent >= 100) {
+                            clearInterval(pollInterval);
+                            text.textContent = "✅ Evaluation complete.";
+                            status.textContent = "Evaluation complete.";
+                            btn.disabled = false;
+
+                            // Refresh stats (if you have a function for it)
+                            if (typeof refreshPunchLogStats === "function") {
+                                refreshPunchLogStats();
+                            }
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Polling error:", err);
+                        clearInterval(pollInterval);
+                        text.textContent = "⚠️ Error during evaluation.";
+                        btn.disabled = false;
+                    });
+            }, 1000); // every 1 second
+        })
+        .catch(err => {
+            console.error("Task start failed:", err);
+            text.textContent = "❌ Failed to start evaluation.";
+            btn.disabled = false;
+        });
+});
+</script> -->
+
+<script>
+	$("#genReportBtn").on("click", function () {
+		const start = $("#start_date_emp").val();
+		const end = $("#end_date_emp").val();
+		const office = $("#id_office").val();
+		const status = $("#filter_status").val();
+		const eventNo = $("#id_event").val();
+		const campus = $("#id_campus").val();
+		const daterange = $("#id_dateRage").val();
+
+		let queryParams = [];
+		if (start) queryParams.push("startdate=" + start);
+		if (end) queryParams.push("enddate=" + end);
+		if (office) queryParams.push("office=" + office);
+		if (status) queryParams.push("attstatusid=" + status);
+		if (campus) queryParams.push("campusid=" + campus);
+		if (eventNo && eventNo !== "all") queryParams.push("event=" + eventNo);
+		if (daterange) queryParams.push("daterange=" + daterange);
+
+		const url = `{% url 'printBatchReport' %}?` + queryParams.join("&");
+		window.open(url, "_blank");
+	});
+</script>
+{% endblock %}

@@ -294,6 +294,59 @@ def delQuerySchedule():
         """
     return sql  
 
+def saveUpdateQueryCancelledSchedule():
+    sql = """
+        INSERT INTO cancelled_schedule (schedId, cancelledDate, reason, cancelledBy)
+        VALUES (%s, %s, %s, %s)
+        ON DUPLICATE KEY UPDATE 
+        cancelledDate = VALUES(cancelledDate),
+        reason = VALUES(reason),
+        cancelledBy = VALUES(cancelledBy)
+    """
+    return sql
+
+#evaluated punch logs
+def fetchEvalPunchLogs(filterQuery=""):
+    sql = f"""
+             SELECT eval.evalPunchNo , 
+               eval.punchNo,
+               evt.eventName, 
+               eval.empId, 
+               eval.pdsId,
+               eval.employee, 
+               eval.empStatus, 
+               eval.empType, 
+               eval.empRank,
+               eval.punchDate, 
+               eval.punchTimeIn, 
+               eval.punchTimeOut, 
+               eval.latitude, 
+               eval.longitude, 
+               eval.officeId,
+               eval.office,
+               eval.campusId,
+               eval.campus,
+               eval.systemDateTime, 
+               eval.attStatusId,
+               eval.isActive
+              FROM punch_log_eval eval
+              LEFT JOIN man_event evt ON eval.eventNo = evt.eventNo
+              WHERE eval.isActive = 'Y'
+              {filterQuery}        
+              ORDER BY eval.evalPunchNo DESC
+      
+      """
+    return sql
+
+def fetchSysPunchStatus():
+    sql = """
+        SELECT * FROM sys_punch 
+        WHERE isActive = 'Y'
+       """
+    
+    return sql
+
+
 #set Schedule
 def setQuerySchedule():
     sql = """
@@ -301,3 +354,4 @@ def setQuerySchedule():
         
         """
     return sql  
+

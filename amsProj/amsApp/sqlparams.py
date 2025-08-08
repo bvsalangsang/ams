@@ -68,3 +68,12 @@ def locationDetParams():
         "latitude": "",
         "isActive": "",
     }
+
+def cancelledScheduleParams():
+    return {
+        "cancelledId": "",
+        "schedId": "",
+        "cancelledDate": "",
+        "reason": "",
+        "cancelledBy": "",
+    }

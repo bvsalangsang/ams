@@ -494,3 +494,115 @@ PATCH	0	Bug fixes, performance improvements, or small tweaks
 
 
   ***upload files on github  "dev-250708"***
+
+'-------------------------------------------------------------------------------
+'=-250710- 0031 - Version 0.0.31 - * BOB *
+'-------------------------------------------------------------------------------
+=-models.py (amsApp)
+  * added model 'evaluatedPunchLog'
+  * added model 'attJsonListEvalLogs'
+
+=-urls.py  
+  * added path for 'evaluatedPunchLog'
+  * added path for 'attJsonListEvalLogs'
+
+=-attendance-eval.html  
+  * created html file
+
+'-------------------------------------------------------------------------------
+'=-250715- 0032 - Version 0.0.32 - * BOB *
+'-------------------------------------------------------------------------------
+=-attendance.html 
+  * created tags 
+    * search 
+    * start date
+    * end date
+
+  * javascripts 
+       * created datatable for events
+       * created sub-table for offices
+       * created sub-table for employee logs
+       * added pagination each sub-table employee logs
+       * added search and status filter functions
+    
+'-------------------------------------------------------------------------------
+'=-250717- 0034 - Version 0.0.34 - * BOB *
+'-------------------------------------------------------------------------------
+=-django
+  * installed xhtml2pdf-0.2.17 on pip 
+
+=-print.html 
+   * created file for print preview 
+   
+'-------------------------------------------------------------------------------
+'=-250718- 0035 - Version 0.0.35 - * BOB *
+'-------------------------------------------------------------------------------
+=-views.py (amsApp)
+  * modify 'printView' function to fetch print using 'xhtml2pdf'
+
+=-models.py (amsApp)
+  * added 'punchNo' column
+  * added 'empStatus' column
+  * added 'empType' column
+  * added 'empRank' column
+  * added 'campusId' column
+  * added 'campus' column
+
+'-------------------------------------------------------------------------------
+'=-250721- 0036 - Version 0.0.36 - * BOB *
+'-------------------------------------------------------------------------------
+=-models.py (amspApp)
+  * added model 'SysPunchStatus'
+
+=-views.py 
+  * added function 'evalLogStatusJsonList'
+
+'-------------------------------------------------------------------------------
+'=-250722- 0037 - Version 0.0.37 - * BOB *
+'-------------------------------------------------------------------------------
+=-views.py 
+   * updated function 'evaluatePunchLogs'
+   * added function 'attJsonListEvalLogs'
+
+=-attendance-eval.html 
+  * added script and modufy tags for printing
+
+'-------------------------------------------------------------------------------
+'=-250801- 0038 - Version 0.0.38 - * BOB *
+'-------------------------------------------------------------------------------
+=-views.py  
+   * reconfiguring 'evaluatePunchLogs' for better optimization
+
+
+'-------------------------------------------------------------------------------
+'=-250805- 0039 - Version 0.0.39 - * BOB *
+'-------------------------------------------------------------------------------
+*installed dependencies (Celery and redis)
+ * pip install celery redis
+
+to run a celery
+  celery -A amsApp worker --loglevel=info --pool=solo
+
+Downloaded file 
+   https://github.com/tporadowski/redis/releases (zip)
+
+=-added files 
+    * celery.py
+    * tasks.py 
+
+=-tasks.py 
+  * added 'evaluate_punch_logs_task' tasks
+
+=-celery.py 
+  * celery configurations 
+
+=- __init__.py (amsApp)
+  * added celery Initialization
+
+=-views.py 
+  * enhanced function 'evaluatePunchLogs'
+
+'-------------------------------------------------------------------------------
+'=-250808- 0040 - Version 0.0.40 - * BOB *
+'-------------------------------------------------------------------------------
+  ***upload files on github  "dev-250808"***

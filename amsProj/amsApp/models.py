@@ -72,6 +72,32 @@ class PunchLogTamper(models.Model):
         class Meta: 
             db_table   = "punch_log_tamper"
 
+class EvaluatedPunchLog(models.Model):
+    evalPunchNo = models.AutoField(primary_key=True, editable=True) 
+    punchNo = models.CharField(max_length=10)
+    eventNo = models.CharField(max_length=8)
+    empId = models.CharField(max_length=20)
+    pdsId = models.CharField(max_length=20,null=True)
+    employee= models.CharField(max_length=150,null=True)
+    empStatus = models.CharField(max_length=50)
+    empType = models.CharField(max_length=30)
+    empRank = models.CharField(max_length=200)
+    punchdate = models.DateField()
+    punchTimeIn = models.CharField(max_length=8)
+    punchTimeOut = models.CharField(max_length=8)
+    latitude  = models.CharField(max_length=30)
+    longitude = models.CharField(max_length=30)
+    officeId = models.CharField(max_length=10, null=True, blank=True)
+    office = models.CharField(max_length=400, null=True, blank=True)
+    campusId = models.CharField(max_length=8)
+    campus = models.CharField(max_length=30)
+    systemDateTime = models.DateTimeField(null=True, blank=True)  # ✅ Add this back
+    attStatusId = models.CharField(max_length=1)
+    remarks = models.CharField(max_length=500, null=True, blank=True)
+    isActive = models.CharField(max_length=1,default='Y')
+
+    class Meta: 
+        db_table   = "punch_log_eval"
 
 class sysInfo(models.Model):
     sysId = models.AutoField(primary_key=True, editable=True)
@@ -140,3 +166,27 @@ class ManSchedule(models.Model):
 
     class Meta:
         db_table = "schedule"
+
+class CancelledSchedule(models.Model):
+    cancelledId = models.AutoField(primary_key=True)
+    schedId = models.CharField(max_length=10)
+    cancelledDate = models.DateField()
+    reason = models.TextField(null=True, blank=True)  # e.g., "Heavy Rain"
+    cancelledBy = models.CharField(max_length=100, null=True, blank=True)  
+    dateTimeCreated = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "cancelled_schedule"
+
+# evaluation status
+class SysPunchStatus(models.Model):
+    sysEvalId = models.AutoField(primary_key=True)
+    punchName = models.CharField(max_length=20)
+    punchLastPkey = models.CharField(max_length=20)
+    punchLastDate = models.DateField(null=True, blank=True)
+    punchCount = models.CharField(max_length=20)
+    lastUpdated = models.DateTimeField(auto_now=True)
+    isActive = models.CharField(max_length=1, default='Y')    
+
+    class Meta: 
+        db_table = "sys_punch"

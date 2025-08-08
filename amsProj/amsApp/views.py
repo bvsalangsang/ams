@@ -1,17 +1,27 @@
 from django.utils import timezone
 from django.db import connection
-from django.http import JsonResponse,HttpResponseBadRequest
+from django.http import JsonResponse,HttpResponseBadRequest,HttpResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from collections import defaultdict
 from django.apps import apps
 from django.db.models import Max
+from xhtml2pdf import pisa
+from io import BytesIO
+from django.db import transaction
+from django.http import StreamingHttpResponse
+import time
 import requests
 import json
-from datetime import datetime
+import base64
+from django.template.loader import get_template
+from collections import defaultdict
+from datetime import datetime,date,timedelta
 from .sqlcommands import * 
 from .sqlparams import *
 from .forms import *    
+from .tasks import *
+
 
 def dashboard(request):
     return render(request, 'amsApp/dashboard.html')
@@ -281,6 +291,7 @@ def shiftTypeJsonList(request):
 
 @csrf_exempt
 def shiftTypeSaveUpdate(request):
+
     if request.method == "POST":
         try:
             shiftType = shiftTypeParams()  
@@ -587,6 +598,34 @@ def setSchedule(request):
 
     return JsonResponse({"Status": "Wrong Request"})
 
+@csrf_exempt
+def cancelSchedule(request):
+   
+    cancelSched = cancelledScheduleParams()
+
+    cancelSched["schedId"] = request.POST.get("schedId", "")
+    cancelSched["cancelledDate"] = request.POST.get("cancelDate", "")
+    cancelSched["cancelReason"] = request.POST.get("cancelReason", "")
+    cancelSched["cancelledBy"] = ""
+
+   
+    try:
+        sql_query = saveUpdateQueryCancelledSchedule()
+        params = (
+            cancelSched["schedId"],
+            cancelSched["cancelledDate"],
+            cancelSched["cancelReason"],
+            cancelSched["cancelledBy"] 
+        )
+
+        with connection.cursor() as cursor:
+            cursor.execute(sql_query, params)
+
+        return JsonResponse({"Status": "Saved"})
+    except Exception as err:
+        return JsonResponse({"Status": "Error", "Message": str(err)})
+ 
+
 #location
 def locationView(request):
     mapForm = LocationForm()
@@ -630,13 +669,15 @@ def saveLocation(request):
             coords = data.get("coords", [])
             saveType = request.GET.get("saveType")
 
-            print("saveType:", saveType)
+            print("LocationId:", locationId)
 
             # Save main location
             sql_query = saveUpdateQueryLocation()
             params = (locationId, locName, address, isActive)
             with connection.cursor() as cursor:
                 cursor.execute(sql_query, params)
+
+                print(cursor.execute(sql_query, params))
             
             if saveType == "update":
                 # Delete existing coordinates for this location
@@ -652,6 +693,7 @@ def saveLocation(request):
        
             return JsonResponse({"Status": "Saved"})
         except Exception as err:
+            print("Error in saveLocation:", str(err))
             return JsonResponse({"Status": "Error", "Message": str(err)})
     else:
         return JsonResponse({"Status": "Wrong Request"})
@@ -853,103 +895,1541 @@ def fetchAndParseUsers(request):
 
     try:
         response = requests.get(api_url)
-        response.raise_for_status()  
+        response.raise_for_status()
 
         json_response = response.json()
-
         users_raw = json_response.get('data', '[]')
-        users = json.loads(users_raw)  # Now it's a list of dicts
-     
-        names = [user.get("NAME", "") for user in users]
+        users = json.loads(users_raw)
 
-        # return JsonResponse({
-        #     "status": "success",
-        #     "count": len(users),
-        #     "names": names,
-        #     "pretty_users": users
-        # }, json_dumps_params={'indent': 2})  # Pretty-printing in response
-
+        # ✅ Keep only users with "USER STATUS" == "Active"
+        active_users = [user for user in users if user.get("USER_STATUS") == "Active"]
+        # active_users = [
+        #             u for u in users
+        #             if u.get("USER_STATUS") == "Active" and u.get("CAMPUS_ID") == 1
+        #         ]
+        
         return JsonResponse({
-                    "status": "success",
-                    "count": len(users),
-                    "usep_users": users
-                }, json_dumps_params={'indent': 2}) 
-    
+            "status": "success",
+            "count": len(active_users),
+            "usep_users": active_users
+        }, json_dumps_params={'indent': 2})
+
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)})
 
+# def evaluatePunchLogs(request):
+#     # 1. Fetch active employees from HRIS
+#     try:
+#         user_api = "https://hris.usep.edu.ph/api/dashboard/view-users?token=496871859d96697ba10536775445fd8f"
+#         response = requests.get(user_api)
+#         response.raise_for_status()
+#         users_raw = response.json().get("data", "[]")
+#         users = json.loads(users_raw)
+#         active_users = [user for user in users if user.get("USER_STATUS") == "Active"]
+#     except Exception as e:
+#         return JsonResponse({"status": "error", "message": f"User API error: {str(e)}"})
 
-def check_attendance(event_no=None, target_date=None):
-    # Map eventNo to the field we want to check
-    event_requirements = {
-        "1": "punchTimeIn",   # Flag Ceremony
-        "2": "punchTimeOut",  # Flag Retreat
-    }
+#     if not active_users:
+#         return JsonResponse({"status": "error", "message": "No active users found."})
 
-    required_field = event_requirements.get(str(event_no), "punchTimeIn")
+#     print("❌ Deleting all previous evaluated logs...")
+#     EvaluatedPunchLog.objects.all().delete()
 
-    # 1st API: Employee master list
-    hris_url = "https://hris.usep.edu.ph/api/dashboard/view-users?token=496871859d96697ba10536775445fd8f"
-    hris_res = requests.get(hris_url).json()
-    master_list = json.loads(hris_res.get("data", "[]"))
+#     if EvaluatedPunchLog.objects.count() == 0:
+#         with connection.cursor() as cursor:
+#             cursor.execute("ALTER TABLE punch_log_eval AUTO_INCREMENT = 1;")
+#             print("✅ Auto-increment reset.")
 
-    # 2nd API: All punch logs
-    punch_url = "http://127.0.0.1:8000/dashboard/api/get-data-punch"
-    punch_res = requests.get(punch_url).json()
-    punch_logs = punch_res if isinstance(punch_res, list) else [punch_res]
+#     punchdates = PunchLog.objects.values_list("punchdate", flat=True).distinct()
+#     total_records = 0
+#     progress_logs = []
 
-    # Filter logs by event and date if provided
-    if event_no and target_date:
-        filtered_logs = [
-            log for log in punch_logs
-            if str(log.get("eventNo")) == str(event_no) and log.get("punchdate") == target_date
-        ]
-    else:
-        filtered_logs = punch_logs
+#     def normalize_time_str(t):
+#         return t if len(t.split(":")) == 3 else t + ":00"
 
-    full_result = []
+#     for punchdate in punchdates:
+#         print(f"🟡 Evaluating logs for: {punchdate}")
+#         month = punchdate.month
+#         year = punchdate.year
 
-    for emp in master_list:
-        emp_id = str(emp.get("id"))
-        log = None  # Initialize log for safe fallback
+#         # 🔁 Fetch leave data from API
+#         try:
+#             leave_response = requests.post(
+#                 "https://hris.usep.edu.ph/api/dashboard/view-employee-leave?token=496871859d96697ba10536775445fd8f",
+#                 data={"month": month, "year": year}
+#             )
+#             leave_response.raise_for_status()
+#             leave_data = leave_response.json().get("data", [])
+#         except Exception as e:
+#             return JsonResponse({"status": "error", "message": f"Leave API error: {str(e)}"})
 
-        # Find logs for employee
-        matching_logs = [
-            l for l in filtered_logs if str(l.get("pdsId")) == emp_id
-        ]
+#         # 📌 Build leave map keyed by pds_users_id
+#         leave_map = defaultdict(lambda: defaultdict(set))
+#         for entry in leave_data:
+#             uid = entry.get("pds_users_id")
+#             for leave_type, field in [("FL", "force_leave_dates"), ("SL", "sick_leave_dates"), ("VL", "vacation_leave_dates")]:
+#                 dates_str = entry.get(field, "")
+#                 if dates_str:
+#                     for d in dates_str.split(","):
+#                         try:
+#                             dt = datetime.strptime(d.strip(), "%b-%d-%Y").date()
+#                             leave_map[uid][leave_type].add(dt)
+#                         except:
+#                             continue
 
-        if matching_logs:
-            for log in matching_logs:
-                is_present = log.get(required_field) != "00:00:00"
-                log["status"] = "Present" if is_present else "Absent"
-                full_result.append(log)
+#         # ✏️ Get logs and eventNos for punchdate
+#         event_nos = PunchLog.objects.filter(punchdate=punchdate).values_list("eventNo", flat=True).distinct()
+#         with connection.cursor() as cursor:
+#             cursor.execute("""
+                # SELECT punchNo, empId, pdsId, employee, eventNo, punchdate,
+                #        punchTimeIn, punchTimeOut, latitude, longitude,
+                #        officeId, office, systemDateTime
+                # FROM punch_log
+#                 WHERE punchdate = %s AND isActive = 'Y'
+#             """, [punchdate])
+#             rows = cursor.fetchall()
+
+#         log_map = {
+#             (str(row[2]), str(row[4])): {
+#                 "punchNo": str(row[0]),
+#                 "empId": str(row[1]),
+#                 "pdsId": str(row[2]),
+#                 "employee": row[3],
+#                 "eventNo": str(row[4]),
+#                 "punchdate": row[5],
+#                 "punchTimeIn": row[6],
+#                 "punchTimeOut": row[7],
+#                 "latitude": row[8],
+#                 "longitude": row[9],
+#                 "officeId": str(row[10]),
+#                 "office": row[11],
+#                 "systemDateTime": row[12],
+#             } for row in rows
+#         }
+
+#         # ❌ Check cancelled schedules for this punchdate
+#         cancelled_event_map = {}
+#         cancelled_scheds = CancelledSchedule.objects.filter(cancelledDate=punchdate)
+#         for c_sched in cancelled_scheds:
+#             try:
+#                 sched = ManSchedule.objects.get(schedId=c_sched.schedId)
+#                 event_no = str(sched.eventNo)
+#                 start_time = datetime.strptime(normalize_time_str(sched.startTime), "%H:%M:%S").time()
+#                 is_morning = start_time < datetime.strptime("12:00:00", "%H:%M:%S").time()
+#                 cancelled_event_map[event_no] = {
+#                     "cancel_in": is_morning,
+#                     "cancel_out": not is_morning
+#                 }
+#             except ManSchedule.DoesNotExist:
+#                 continue
+
+#         evaluated_records = []
+
+#         for emp in active_users:
+#             emp_id = str(emp.get("id"))
+#             emp_name = emp.get("NAME").strip()
+#             empStatus = emp.get("EMPLOYMENT_STATUS")
+#             empType = emp.get("EMPLOYMENT_TYPE")
+#             empRank = emp.get("EMPLOYMENT_RANK")
+#             office_id = str(emp.get("DEPARTMENT_ID"))
+#             office = emp.get("DEPARTMENT")
+#             campusId = emp.get("CAMPUS_ID")
+#             campus = emp.get("CAMPUS")
+
+#             for event_no in event_nos:
+#                 key = (emp_id, str(event_no))
+
+#                 # ✅ Check leave status by emp_id
+#                 leave_type = None
+#                 for lt in ("FL", "SL", "VL"):
+#                     if punchdate in leave_map.get(int(emp_id), {}).get(lt, set()):
+#                         leave_type = lt
+#                         break
+
+#                 if leave_type:
+#                     # progress_logs.append(f"🟡 Leave ({leave_type}): {emp_name} [{event_no}]")
+#                     yield {"type": "log", "message": f"🟡 Leave ({leave_type}): {emp_name} [{event_no}]"}
+#                     record = EvaluatedPunchLog(
+#                         punchNo='n/a',
+#                         empId=emp_id,
+#                         pdsId=emp_id,
+#                         employee=emp_name,
+#                         empStatus=empStatus,
+#                         empType=empType,
+#                         empRank=empRank,
+#                         eventNo=event_no,
+#                         punchdate=punchdate,
+#                         punchTimeIn=leave_type,
+#                         punchTimeOut=leave_type,
+#                         latitude="0.0",
+#                         longitude="0.0",
+#                         officeId=office_id,
+#                         office=office,
+#                         campusId=campusId,
+#                         campus=campus,
+#                         isActive='Y',
+#                         attStatusId="4",
+#                         remarks=leave_type
+#                     )
+#                     evaluated_records.append(record)
+#                     continue
+
+#                 # ❌ Check if event is cancelled
+#                 cancel_info = cancelled_event_map.get(str(event_no))
+#                 if cancel_info:
+#                     punch_in_val = "cancelled" if cancel_info["cancel_in"] else "00:00:00"
+#                     punch_out_val = "cancelled" if cancel_info["cancel_out"] else "00:00:00"
+#                     # progress_logs.append(f"🚫 Cancelled: {emp_name} [{event_no}]")
+#                     yield {"type": "log", "message": f"🚫 Cancelled: {emp_name} [{event_no}]"}
+
+#                     record = EvaluatedPunchLog(
+#                         punchNo='n/a',
+#                         empId=emp_id,
+#                         pdsId=emp_id,
+#                         employee=emp_name,
+#                         empStatus=empStatus,
+#                         empType=empType,
+#                         empRank=empRank,
+#                         eventNo=event_no,
+#                         punchdate=punchdate,
+#                         punchTimeIn=punch_in_val,
+#                         punchTimeOut=punch_out_val,
+#                         latitude="0.0",
+#                         longitude="0.0",
+#                         officeId=office_id,
+#                         office=office,
+#                         campusId=campusId,
+#                         campus=campus,
+#                         isActive='Y',
+#                         attStatusId="3",
+#                         remarks="Schedule cancelled."
+#                     )
+#                     evaluated_records.append(record)
+#                     continue
+
+#                 # ✅ Present
+#                 if key in log_map:
+#                     punch = log_map[key]
+#                     # progress_logs.append(f"✅ Present: {emp_name} [{event_no}]")
+#                     yield {"type": "log", "message": f"✅ Present: {emp_name} [{event_no}]"}
+#                     record = EvaluatedPunchLog(
+#                         punchNo=punch["punchNo"],
+#                         empId=emp_id,
+#                         pdsId=punch["pdsId"],
+#                         employee=emp_name,
+#                         empStatus=empStatus,
+#                         empType=empType,
+#                         empRank=empRank,
+#                         eventNo=event_no,
+#                         punchdate=punchdate,
+#                         punchTimeIn=punch["punchTimeIn"],
+#                         punchTimeOut=punch["punchTimeOut"],
+#                         latitude=punch["latitude"],
+#                         longitude=punch["longitude"],
+#                         officeId=office_id,
+#                         office=office,
+#                         campusId=campusId,
+#                         campus=campus,
+#                         isActive='Y',
+#                         attStatusId="1",
+#                         remarks="",
+#                         systemDateTime=punch["systemDateTime"]
+#                     )
+#                 else:
+#                     # ❌ Absent
+#                     # progress_logs.append(f"❌ Absent: {emp_name} [{event_no}]")
+#                     yield {"type": "log", "message": f"❌ Absent: {emp_name} [{event_no}]"}
+#                     record = EvaluatedPunchLog(
+#                         punchNo='n/a',
+#                         empId=emp_id,
+#                         pdsId=emp_id,
+#                         employee=emp_name,
+#                         empStatus=empStatus,
+#                         empType=empType,
+#                         empRank=empRank,
+#                         eventNo=event_no,
+#                         punchdate=punchdate,
+#                         punchTimeIn="00:00:00",
+#                         punchTimeOut="00:00:00",
+#                         latitude="0.0",
+#                         longitude="0.0",
+#                         officeId=office_id,
+#                         office=office,
+#                         campusId=campusId,
+#                         campus=campus,
+#                         isActive='Y',
+#                         attStatusId="2",
+#                         remarks=""
+#                     )
+
+#                 evaluated_records.append(record)
+
+#         EvaluatedPunchLog.objects.bulk_create(evaluated_records, batch_size=500)
+#         total_records += len(evaluated_records)
+#         yield {"type": "done", "message": f"✅ Finished evaluating {total_records} logs."}
+
+#     return JsonResponse({
+#         "status": "success",
+#         "message": f"{total_records} records evaluated.",
+#         "logs": progress_logs,
+#         "date": "all"
+#     })
+
+# def evaluatePunchLogs(request):
+#     from django.db.models import Max
+#     from collections import defaultdict
+#     from datetime import datetime
+
+#     try:
+#         api_url = "https://hris.usep.edu.ph/api/dashboard/view-users?token=496871859d96697ba10536775445fd8f"
+#         response = requests.get(api_url)
+#         response.raise_for_status()
+#         users_raw = response.json().get("data", "[]")
+#         users = json.loads(users_raw)
+#         active_users = [user for user in users if user.get("USER_STATUS") == "Active"]
+#     except Exception as e:
+#         return JsonResponse({"status": "error", "message": f"API error: {str(e)}"})
+
+#     if not active_users:
+#         return JsonResponse({"status": "error", "message": "No active users found."})
+
+#     # Get last evaluated punchdate from SysPunchStatus
+#     punch_status, _ = SysPunchStatus.objects.get_or_create(
+#         punchName='punch_log_eval',
+#         defaults={'punchCount': '0', 'punchLastPkey': '', 'punchLastDate': None, 'isActive': 'Y'}
+#     )
+#     last_eval_date = punch_status.punchLastDate
+
+#     # Get all punchdates greater than last evaluated
+#     if last_eval_date:
+#         punchdates = PunchLog.objects.filter(
+#             punchdate__gt=last_eval_date
+#         ).values_list("punchdate", flat=True).distinct().order_by("punchdate")
+#     else:
+#         punchdates = PunchLog.objects.values_list("punchdate", flat=True).distinct().order_by("punchdate")
+
+ 
+#     # Collect all months/years needed for leave API calls
+#     months_years = set((d.month, d.year) for d in punchdates)
+#     all_leave_data = []
+#     for month, year in months_years:
+#         try:
+#             leave_response = requests.post(
+#                 "https://hris.usep.edu.ph/api/dashboard/view-employee-leave?token=496871859d96697ba10536775445fd8f",
+#                 data={"month": month, "year": year}
+#             )
+#             leave_response.raise_for_status()
+#             leave_data = leave_response.json().get("data", [])
+#             all_leave_data.extend(leave_data)
+#         except Exception:
+#             continue
+
+#     # Build leave map: {pds_users_id: {"FL": set(dates), "SL": set(dates), "VL": set(dates)}}
+#     leave_map = defaultdict(lambda: defaultdict(set))
+#     for entry in all_leave_data:
+#         uid = str(entry.get("pds_users_id"))
+#         for leave_type, field in [("FL", "force_leave_dates"), ("SL", "sick_leave_dates"), ("VL", "vacation_leave_dates")]:
+#             dates_str = entry.get(field, "")
+#             if dates_str:
+#                 for d in dates_str.split(","):
+#                     try:
+#                         dt = datetime.strptime(d.strip(), "%b-%d-%Y").date()
+#                         leave_map[uid][leave_type].add(dt)
+#                     except Exception:
+#                         continue
+
+#     total_records = 0
+#     progress_logs = []
+#     latest_processed_date = last_eval_date
+
+#     for punchdate in punchdates:
+#         event_nos = PunchLog.objects.filter(punchdate=punchdate).values_list("eventNo", flat=True).distinct()
+#         # Fetch cancelled events for this date
+#         cancelled_events = set(
+#             ManSchedule.objects.filter(
+#                 schedId__in=CancelledSchedule.objects.filter(cancelledDate=punchdate).values_list('schedId', flat=True)
+#             ).values_list('eventNo', flat=True)
+#         )
+#         # Map eventNo to ManSchedule for time reference
+#         schedule_map = {
+#             str(s.eventNo): s for s in ManSchedule.objects.filter(eventNo__in=event_nos)
+#         }
+
+#         # Use raw SQL to fetch punch logs (including systemDateTime)
+#         with connection.cursor() as cursor:
+#             cursor.execute("""
+#                 SELECT punchNo, empId, pdsId, employee, eventNo, punchdate,
+#                     punchTimeIn, punchTimeOut, latitude, longitude,
+#                     officeId, office, systemDateTime
+#                 FROM punch_log
+#                 WHERE punchdate = %s AND isActive = 'Y'
+#             """, [punchdate])
+#             punch_logs_raw = cursor.fetchall()
+
+#         log_map = {
+#             (str(row[2]), str(row[4])): row for row in punch_logs_raw
+#         }
+
+#         evaluated_records = []
+
+#         for emp in active_users:
+#             emp_id = str(emp.get("id"))
+#             emp_name = emp.get("NAME")
+#             empStatus = emp.get("EMPLOYMENT_STATUS")
+#             empType = emp.get("EMPLOYMENT_TYPE")
+#             empRank = emp.get("EMPLOYMENT_RANK")
+#             office_id = str(emp.get("DEPARTMENT_ID"))
+#             office = emp.get("DEPARTMENT")
+#             campusId = emp.get("CAMPUS_ID")
+#             campus = emp.get("CAMPUS")
+
+#             for event_no in event_nos:
+#                 key = (emp_id, str(event_no))
+#                 is_cancelled = str(event_no) in cancelled_events
+#                 sched = schedule_map.get(str(event_no))
+
+#                 # --- LEAVE CHECK ---
+#                 leave_type = None
+#                 for lt in ("FL", "SL", "VL"):
+#                     if punchdate in leave_map.get(emp_id, {}).get(lt, set()):
+#                         leave_type = lt
+#                         break
+
+#                 if leave_type:
+#                     record = EvaluatedPunchLog(
+#                         punchNo='n/a',
+#                         empId=emp_id,
+#                         pdsId=emp_id,
+#                         employee=emp_name,
+#                         empStatus=empStatus,
+#                         empType=empType,
+#                         empRank=empRank,
+#                         eventNo=event_no,
+#                         punchdate=punchdate,
+#                         punchTimeIn=leave_type,
+#                         punchTimeOut=leave_type,
+#                         latitude="0.0",
+#                         longitude="0.0",
+#                         officeId=office_id,
+#                         office=office,
+#                         campusId=campusId,
+#                         campus=campus,
+#                         isActive='Y',
+#                         attStatusId="4",
+#                         remarks=leave_type,
+#                         systemDateTime=None
+#                     )
+#                 elif key in log_map:
+#                     row = log_map[key]
+#                     record = EvaluatedPunchLog(
+#                         punchNo=row[0],
+#                         empId=emp_id,
+#                         pdsId=row[2],
+#                         employee=emp_name,
+#                         empStatus=empStatus,
+#                         empType=empType,
+#                         empRank=empRank,
+#                         eventNo=event_no,
+#                         punchdate=row[5],
+#                         punchTimeIn=row[6],
+#                         punchTimeOut=row[7],
+#                         latitude=row[8],
+#                         longitude=row[9],
+#                         officeId=office_id,
+#                         office=office,
+#                         campusId=campusId,
+#                         campus=campus,
+#                         isActive='Y',
+#                         attStatusId="1",
+#                         remarks="",
+#                         systemDateTime=row[12]
+#                     )
+#                 else:
+#                     punch_in = "Absent"
+#                     punch_out = "Absent"
+#                     att_status = "2"
+#                     remarks = ""
+
+#                     if is_cancelled and sched:
+#                         if sched.startTime and sched.startTime != "00:00:00":
+#                             punch_in = "cancelled"
+#                         if sched.endTime and sched.endTime != "00:00:00":
+#                             punch_out = "cancelled"
+#                         att_status = "3"
+#                         remarks = "Schedule cancelled."
+
+#                     record = EvaluatedPunchLog(
+#                         punchNo='n/a',
+#                         empId=emp_id,
+#                         pdsId=emp_id,
+#                         employee=emp_name,
+#                         empStatus=empStatus,
+#                         empType=empType,
+#                         empRank=empRank,
+#                         eventNo=event_no,
+#                         punchdate=punchdate,
+#                         punchTimeIn=punch_in,
+#                         punchTimeOut=punch_out,
+#                         latitude="0.0",
+#                         longitude="0.0",
+#                         officeId=office_id,
+#                         office=office,
+#                         campusId=campusId,
+#                         campus=campus,
+#                         isActive='Y',
+#                         attStatusId=att_status,
+#                         remarks=remarks,
+#                         systemDateTime=None
+#                     )
+#                 evaluated_records.append(record)
+
+#         EvaluatedPunchLog.objects.bulk_create(evaluated_records, batch_size=500)
+#         total_records += len(evaluated_records)
+#         latest_processed_date = punchdate
+
+#     # Update SysPunchStatus with new last punchdate and count
+#     if latest_processed_date:
+#         punch_status.punchLastPkey = ""
+#         punch_status.punchLastDate = latest_processed_date
+#         punch_status.punchCount = str(EvaluatedPunchLog.objects.count())
+#         punch_status.save()
+
+#     return JsonResponse({
+#         "status": "success",
+#         "message": f"{total_records} new records evaluated.",
+#         "logs": progress_logs,
+#         "date": "incremental"
+#     })
+
+# def evaluatePunchLogs(request):
+#     from django.db.models import Max
+#     from collections import defaultdict
+#     from datetime import datetime
+
+#     def sse_stream():
+#         try:
+#             api_url = "https://hris.usep.edu.ph/api/dashboard/view-users?token=496871859d96697ba10536775445fd8f"
+#             response = requests.get(api_url)
+#             response.raise_for_status()
+#             users_raw = response.json().get("data", "[]")
+#             users = json.loads(users_raw)
+#             active_users = [user for user in users if user.get("USER_STATUS") == "Active"]
+#         except Exception as e:
+#             yield f"data: {json.dumps({'message': f'API error: {str(e)}'})}\n\n"
+#             return
+
+#         if not active_users:
+#             yield f"data: {json.dumps({'message': 'No active users found.'})}\n\n"
+#             return
+
+#         punch_status, _ = SysPunchStatus.objects.get_or_create(
+#             punchName='punch_log_eval',
+#             defaults={'punchCount': '0', 'punchLastPkey': '', 'punchLastDate': None, 'isActive': 'Y'}
+#         )
+#         last_eval_date = punch_status.punchLastDate
+
+#         if last_eval_date:
+#             punchdates = PunchLog.objects.filter(
+#                 punchdate__gt=last_eval_date
+#             ).values_list("punchdate", flat=True).distinct().order_by("punchdate")
+#         else:
+#             punchdates = PunchLog.objects.values_list("punchdate", flat=True).distinct().order_by("punchdate")
+
+#         months_years = set((d.month, d.year) for d in punchdates)
+#         all_leave_data = []
+#         for month, year in months_years:
+#             try:
+#                 leave_response = requests.post(
+#                     "https://hris.usep.edu.ph/api/dashboard/view-employee-leave?token=496871859d96697ba10536775445fd8f",
+#                     data={"month": month, "year": year}
+#                 )
+#                 leave_response.raise_for_status()
+#                 leave_data = leave_response.json().get("data", [])
+#                 all_leave_data.extend(leave_data)
+#             except Exception:
+#                 continue
+
+#         leave_map = defaultdict(lambda: defaultdict(set))
+#         for entry in all_leave_data:
+#             uid = str(entry.get("pds_users_id"))
+#             for leave_type, field in [("FL", "force_leave_dates"), ("SL", "sick_leave_dates"), ("VL", "vacation_leave_dates")]:
+#                 dates_str = entry.get(field, "")
+#                 if dates_str:
+#                     for d in dates_str.split(","):
+#                         try:
+#                             dt = datetime.strptime(d.strip(), "%b-%d-%Y").date()
+#                             leave_map[uid][leave_type].add(dt)
+#                         except Exception:
+#                             continue
+        
+                            
+
+#         total_records = 0
+#         latest_processed_date = last_eval_date
+#         punchdate_count = len(punchdates)
+#         punchdate_idx = 0
+
+
+
+#         for punchdate in punchdates:
+#             punchdate_idx += 1
+#             yield f"data: {json.dumps({'message': f'Processing {punchdate} ({punchdate_idx}/{punchdate_count})'})}\n\n"
+#             event_nos = PunchLog.objects.filter(punchdate=punchdate).values_list("eventNo", flat=True).distinct()
+#             cancelled_events = set(
+#                 ManSchedule.objects.filter(
+#                     schedId__in=CancelledSchedule.objects.filter(cancelledDate=punchdate).values_list('schedId', flat=True)
+#                 ).values_list('eventNo', flat=True)
+#             )
+#             schedule_map = {
+#                 str(s.eventNo): s for s in ManSchedule.objects.filter(eventNo__in=event_nos)
+#             }
+
+#             with connection.cursor() as cursor:
+#                 cursor.execute("""
+#                     SELECT punchNo, empId, pdsId, employee, eventNo, punchdate,
+#                         punchTimeIn, punchTimeOut, latitude, longitude,
+#                         officeId, office, systemDateTime
+#                     FROM punch_log
+#                     WHERE punchdate = %s AND isActive = 'Y'
+#                 """, [punchdate])
+#                 punch_logs_raw = cursor.fetchall()
+
+#             log_map = {
+#                 (str(row[2]), str(row[4])): row for row in punch_logs_raw
+#             }
+
+#             evaluated_records = []
+
+#             for emp in active_users:
+#                 emp_id = str(emp.get("id"))
+#                 emp_name = emp.get("NAME")
+#                 empStatus = emp.get("EMPLOYMENT_STATUS")
+#                 empType = emp.get("EMPLOYMENT_TYPE")
+#                 empRank = emp.get("EMPLOYMENT_RANK")
+#                 office_id = str(emp.get("DEPARTMENT_ID"))
+#                 office = emp.get("DEPARTMENT")
+#                 campusId = emp.get("CAMPUS_ID")
+#                 campus = emp.get("CAMPUS")
+
+#                 for event_no in event_nos:
+#                     key = (emp_id, str(event_no))
+#                     is_cancelled = str(event_no) in cancelled_events
+#                     sched = schedule_map.get(str(event_no))
+
+#                     # --- LEAVE CHECK ---
+#                     leave_type = None
+#                     for lt in ("FL", "SL", "VL"):
+#                         if punchdate in leave_map.get(emp_id, {}).get(lt, set()):
+#                             leave_type = lt
+#                             break
+
+#                     if leave_type:
+#                         msg = f"🟡 Leave ({leave_type}): {emp_name} [{event_no}]"
+#                         record = EvaluatedPunchLog(
+#                             punchNo='n/a',
+#                             empId=emp_id,
+#                             pdsId=emp_id,
+#                             employee=emp_name,
+#                             empStatus=empStatus,
+#                             empType=empType,
+#                             empRank=empRank,
+#                             eventNo=event_no,
+#                             punchdate=punchdate,
+#                             punchTimeIn=leave_type,
+#                             punchTimeOut=leave_type,
+#                             latitude="0.0",
+#                             longitude="0.0",
+#                             officeId=office_id,
+#                             office=office,
+#                             campusId=campusId,
+#                             campus=campus,
+#                             isActive='Y',
+#                             attStatusId="4",
+#                             remarks=leave_type,
+#                             systemDateTime=None
+#                         )
+#                     elif key in log_map:
+#                         row = log_map[key]
+#                         msg = f"✅ Present: {emp_name} [{event_no}]"
+#                         record = EvaluatedPunchLog(
+#                             punchNo=row[0],
+#                             empId=emp_id,
+#                             pdsId=row[2],
+#                             employee=emp_name,
+#                             empStatus=empStatus,
+#                             empType=empType,
+#                             empRank=empRank,
+#                             eventNo=event_no,
+#                             punchdate=row[5],
+#                             punchTimeIn=row[6],
+#                             punchTimeOut=row[7],
+#                             latitude=row[8],
+#                             longitude=row[9],
+#                             officeId=office_id,
+#                             office=office,
+#                             campusId=campusId,
+#                             campus=campus,
+#                             isActive='Y',
+#                             attStatusId="1",
+#                             remarks="",
+#                             systemDateTime=row[12]
+#                         )
+#                     else:
+#                         punch_in = "Absent"
+#                         punch_out = "Absent"
+#                         att_status = "2"
+#                         remarks = ""
+#                         if is_cancelled and sched:
+#                             if sched.startTime and sched.startTime != "00:00:00":
+#                                 punch_in = "cancelled"
+#                             if sched.endTime and sched.endTime != "00:00:00":
+#                                 punch_out = "cancelled"
+#                             att_status = "3"
+#                             remarks = "Schedule cancelled."
+#                         msg = f"❌ Absent: {emp_name} [{event_no}]" if not is_cancelled else f"🚫 Cancelled: {emp_name} [{event_no}]"
+#                         record = EvaluatedPunchLog(
+#                             punchNo='n/a',
+#                             empId=emp_id,
+#                             pdsId=emp_id,
+#                             employee=emp_name,
+#                             empStatus=empStatus,
+#                             empType=empType,
+#                             empRank=empRank,
+#                             eventNo=event_no,
+#                             punchdate=punchdate,
+#                             punchTimeIn=punch_in,
+#                             punchTimeOut=punch_out,
+#                             latitude="0.0",
+#                             longitude="0.0",
+#                             officeId=office_id,
+#                             office=office,
+#                             campusId=campusId,
+#                             campus=campus,
+#                             isActive='Y',
+#                             attStatusId=att_status,
+#                             remarks=remarks,
+#                             systemDateTime=None
+#                         )
+#                     evaluated_records.append(record)
+#                     yield f"data: {json.dumps({'message': msg})}\n\n"
+
+#             EvaluatedPunchLog.objects.bulk_create(evaluated_records, batch_size=500)
+#             total_records += len(evaluated_records)
+#             latest_processed_date = punchdate
+#             yield f"data: {json.dumps({'message': f'✅ Finished {punchdate} ({punchdate_idx}/{punchdate_count})'})}\n\n"
+
+#         # Update SysPunchStatus
+#         if latest_processed_date:
+#             punch_status.punchLastPkey = ""
+#             punch_status.punchLastDate = latest_processed_date
+#             punch_status.punchCount = str(EvaluatedPunchLog.objects.count())
+#             punch_status.save()
+
+#         yield f"event: close\ndata: {json.dumps({'message': f'✅ Evaluation complete. {total_records} records evaluated.'})}\n\n"
+
+#     return StreamingHttpResponse(sse_stream(), content_type='text/event-stream')
+def evaluatePunchLogs(request):
+    def sse_stream():
+        # tolerance for matching manual entries to punch times
+        tolerance = timedelta(minutes=5)
+
+        # --- 1) Fetch active users ---
+        try:
+            api_url = "https://hris.usep.edu.ph/api/dashboard/view-users?token=496871859d96697ba10536775445fd8f"
+            response = requests.get(api_url)
+            response.raise_for_status()
+            users_raw = response.json().get("data", "[]")
+            users = json.loads(users_raw)
+            active_users = [user for user in users if user.get("USER_STATUS") == "Active"]
+        except Exception as e:
+            yield f"data: {json.dumps({'message': f'API error (users): {str(e)}'})}\n\n"
+            return
+
+        if not active_users:
+            yield f"data: {json.dumps({'message': 'No active users found.'})}\n\n"
+            return
+
+        # --- 2) Determine punchdates (must do this BEFORE fetching manual entries) ---
+        punch_status, _ = SysPunchStatus.objects.get_or_create(
+            punchName='punch_log_eval',
+            defaults={'punchCount': '0', 'punchLastPkey': '', 'punchLastDate': None, 'isActive': 'Y'}
+        )
+        last_eval_date = punch_status.punchLastDate
+
+        if last_eval_date:
+            punchdates = PunchLog.objects.filter(
+                punchdate__gt=last_eval_date
+            ).values_list("punchdate", flat=True).distinct().order_by("punchdate")
         else:
-            full_result.append({
-                "punchNo": None,
-                "eventNo": event_no,
-                "empId": None,
-                "pdsId": emp_id,
-                "employee": emp.get("NAME"),
-                "punchdate": target_date or "Unknown",
-                "punchTimeIn": "00:00:00",
-                "punchTimeOut": "00:00:00",
-                "latitude": None,
-                "longitude": None,
-                "officeId": None,
-                "office": emp.get("DEPARTMENT"),
-                "systemDateTime": datetime.now().isoformat(),  # fallback timestamp
-                "isActive": "N",
-                "status": "Absent"
+            punchdates = PunchLog.objects.values_list("punchdate", flat=True).distinct().order_by("punchdate")
+
+        # --- 3) Fetch manual entries for each unique (year, month) in punchdates ---
+        manual_entries_url = "https://hris.usep.edu.ph/api/dashboard/view-manual-entries"
+        manual_map = defaultdict(list)  # key: date -> list of {userid, datetime, justification}
+        unique_periods = {(d.year, d.month) for d in punchdates}
+
+        for year, month in unique_periods:
+            try:
+                me_response = requests.post(
+                    manual_entries_url,
+                    data={
+                        "month": month,
+                        "year": year,
+                        "token": "496871859d96697ba10536775445fd8f"
+                    }
+                )
+                me_response.raise_for_status()
+                manual_entries = me_response.json().get("data", [])
+                for me in manual_entries:
+                    try:
+                        me_dt = datetime.strptime(me["datetime"], "%Y-%m-%d %H:%M:%S")
+                        manual_map[me_dt.date()].append({
+                            "userid": str(me["userid"]),
+                            "datetime": me_dt,
+                            "justification": me.get("justification", "")
+                        })
+                    except Exception:
+                        # skip malformed manual entry datetime
+                        continue
+            except Exception as e:
+                yield f"data: {json.dumps({'message': f'Manual Entry API error for {month}/{year}: {str(e)}'})}\n\n"
+                # continue to next period
+
+        # --- 4) Fetch leave data per month/year (existing logic) ---
+        months_years = set((d.month, d.year) for d in punchdates)
+        all_leave_data = []
+        for month, year in months_years:
+            try:
+                leave_response = requests.post(
+                    "https://hris.usep.edu.ph/api/dashboard/view-employee-leave?token=496871859d96697ba10536775445fd8f",
+                    data={"month": month, "year": year}
+                )
+                leave_response.raise_for_status()
+                leave_data = leave_response.json().get("data", [])
+                all_leave_data.extend(leave_data)
+            except Exception:
+                continue
+
+        leave_map = defaultdict(lambda: defaultdict(set))
+        for entry in all_leave_data:
+            uid = str(entry.get("pds_users_id"))
+            for leave_type, field in [("FL", "force_leave_dates"), ("SL", "sick_leave_dates"), ("VL", "vacation_leave_dates")]:
+                dates_str = entry.get(field, "")
+                if dates_str:
+                    for d in dates_str.split(","):
+                        try:
+                            dt = datetime.strptime(d.strip(), "%b-%d-%Y").date()
+                            leave_map[uid][leave_type].add(dt)
+                        except Exception:
+                            continue
+
+        # helper to safely parse time-like field into a datetime (or None).
+        def _parse_time_field_to_dt(field_value, punchdate):
+            """
+            field_value: could be None, 'ME', a time string 'HH:MM:SS', a time object, or something else.
+            Returns datetime (punchdate + time) or None.
+            """
+            if not field_value:
+                return None
+            s = str(field_value).strip()
+            if not s:
+                return None
+            if s.upper() == "ME":
+                return None
+            # If value contains space, take last token (handles 'YYYY-MM-DD HH:MM:SS' or similar)
+            if " " in s:
+                s = s.split(" ")[-1]
+            try:
+                t = datetime.strptime(s, "%H:%M:%S").time()
+                return datetime.combine(punchdate, t)
+            except Exception:
+                # give up, return None
+                return None
+
+        # --- 5) Main evaluation loop (preserve your original logic) ---
+        total_records = 0
+        latest_processed_date = last_eval_date
+        punchdate_count = len(punchdates)
+        punchdate_idx = 0
+
+        for punchdate in punchdates:
+            punchdate_idx += 1
+            yield f"data: {json.dumps({'message': f'Processing {punchdate} ({punchdate_idx}/{punchdate_count})'})}\n\n"
+
+            event_nos = PunchLog.objects.filter(punchdate=punchdate).values_list("eventNo", flat=True).distinct()
+            cancelled_events = set(
+                ManSchedule.objects.filter(
+                    schedId__in=CancelledSchedule.objects.filter(cancelledDate=punchdate).values_list('schedId', flat=True)
+                ).values_list('eventNo', flat=True)
+            )
+            schedule_map = {
+                str(s.eventNo): s for s in ManSchedule.objects.filter(eventNo__in=event_nos)
+            }
+
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    SELECT punchNo, empId, pdsId, employee, eventNo, punchdate,
+                        punchTimeIn, punchTimeOut, latitude, longitude,
+                        officeId, office, systemDateTime
+                    FROM punch_log
+                    WHERE punchdate = %s AND isActive = 'Y'
+                """, [punchdate])
+                punch_logs_raw = cursor.fetchall()
+
+            # map by (pdsId, eventNo) as before
+            log_map = {
+                (str(row[2]), str(row[4])): row for row in punch_logs_raw
+            }
+
+            evaluated_records = []
+            me_for_date = manual_map.get(punchdate, [])
+
+            for emp in active_users:
+                emp_id = str(emp.get("id"))
+                emp_name = emp.get("NAME")
+                empStatus = emp.get("EMPLOYMENT_STATUS")
+                empType = emp.get("EMPLOYMENT_TYPE")
+                empRank = emp.get("EMPLOYMENT_RANK")
+                office_id = str(emp.get("DEPARTMENT_ID"))
+                office = emp.get("DEPARTMENT")
+                campusId = emp.get("CAMPUS_ID")
+                campus = emp.get("CAMPUS")
+
+                for event_no in event_nos:
+                    key = (emp_id, str(event_no))
+                    is_cancelled = str(event_no) in cancelled_events
+                    sched = schedule_map.get(str(event_no))
+
+                    # --- LEAVE CHECK ---
+                    leave_type = None
+                    for lt in ("FL", "SL", "VL"):
+                        if punchdate in leave_map.get(emp_id, {}).get(lt, set()):
+                            leave_type = lt
+                            break
+
+                    if leave_type:
+                        # Leave record
+                        msg = f"🟡 Leave ({leave_type}): {emp_name} [{event_no}]"
+                        record = EvaluatedPunchLog(
+                            punchNo='n/a',
+                            empId=emp_id,
+                            pdsId=emp_id,
+                            employee=emp_name,
+                            empStatus=empStatus,
+                            empType=empType,
+                            empRank=empRank,
+                            eventNo=event_no,
+                            punchdate=punchdate,
+                            punchTimeIn=leave_type,
+                            punchTimeOut=leave_type,
+                            latitude="0.0",
+                            longitude="0.0",
+                            officeId=office_id,
+                            office=office,
+                            campusId=campusId,
+                            campus=campus,
+                            isActive='Y',
+                            attStatusId="4",
+                            remarks=leave_type,
+                            systemDateTime=None
+                        )
+
+                    elif key in log_map:
+                        # Present: check manual entry proximity (ME) before creating evaluated record
+                        row = list(log_map[key])  # copy so we can mutate row[6]/row[7] safely in-memory
+                        justification = ""
+
+                        # safe parse the original punch times to datetimes for comparison
+                        punch_in_dt = _parse_time_field_to_dt(row[6], punchdate)
+                        punch_out_dt = _parse_time_field_to_dt(row[7], punchdate)
+
+                        # Check manual entries for that user on this date
+                        for me in me_for_date:
+                            if me["userid"] == emp_id:
+                                me_dt = me["datetime"]
+                                # match against punch in/out with tolerance
+                                if punch_in_dt and abs(me_dt - punch_in_dt) <= tolerance:
+                                    row[6] = "ME"
+                                    justification = me.get("justification", "") or justification
+                                if punch_out_dt and abs(me_dt - punch_out_dt) <= tolerance:
+                                    row[7] = "ME"
+                                    justification = me.get("justification", "") or justification
+                                # If punch_in/punch_out were None but you want to mark ME even if DB had no in/out,
+                                # you could add logic here to set row[6]/row[7] = "ME" when punch_in_dt is None.
+                                # (Currently we only tag existing times within tolerance.)
+
+                        msg = f"✅ Present: {emp_name} [{event_no}]"
+                        record = EvaluatedPunchLog(
+                            punchNo=row[0],
+                            empId=emp_id,
+                            pdsId=row[2],
+                            employee=emp_name,
+                            empStatus=empStatus,
+                            empType=empType,
+                            empRank=empRank,
+                            eventNo=event_no,
+                            punchdate=row[5],
+                            punchTimeIn=row[6],
+                            punchTimeOut=row[7],
+                            latitude=row[8],
+                            longitude=row[9],
+                            officeId=office_id,
+                            office=office,
+                            campusId=campusId,
+                            campus=campus,
+                            isActive='Y',
+                            attStatusId="1",
+                            remarks=justification,
+                            systemDateTime=row[12]
+                        )
+
+                    else:
+                        # Absent or Cancelled
+                        punch_in = "Absent"
+                        punch_out = "Absent"
+                        att_status = "2"
+                        remarks = ""
+                        if is_cancelled and sched:
+                            if getattr(sched, "startTime", None) and sched.startTime != "00:00:00":
+                                punch_in = "cancelled"
+                            if getattr(sched, "endTime", None) and sched.endTime != "00:00:00":
+                                punch_out = "cancelled"
+                            att_status = "3"
+                            remarks = "Schedule cancelled."
+                        msg = f"❌ Absent: {emp_name} [{event_no}]" if not is_cancelled else f"🚫 Cancelled: {emp_name} [{event_no}]"
+                        record = EvaluatedPunchLog(
+                            punchNo='n/a',
+                            empId=emp_id,
+                            pdsId=emp_id,
+                            employee=emp_name,
+                            empStatus=empStatus,
+                            empType=empType,
+                            empRank=empRank,
+                            eventNo=event_no,
+                            punchdate=punchdate,
+                            punchTimeIn=punch_in,
+                            punchTimeOut=punch_out,
+                            latitude="0.0",
+                            longitude="0.0",
+                            officeId=office_id,
+                            office=office,
+                            campusId=campusId,
+                            campus=campus,
+                            isActive='Y',
+                            attStatusId=att_status,
+                            remarks=remarks,
+                            systemDateTime=None
+                        )
+
+                    evaluated_records.append(record)
+                    yield f"data: {json.dumps({'message': msg})}\n\n"
+
+            # bulk insert for this date
+            if evaluated_records:
+                EvaluatedPunchLog.objects.bulk_create(evaluated_records, batch_size=500)
+                total_records += len(evaluated_records)
+
+            latest_processed_date = punchdate
+            yield f"data: {json.dumps({'message': f'✅ Finished {punchdate} ({punchdate_idx}/{punchdate_count})'})}\n\n"
+
+        # --- Update SysPunchStatus as before ---
+        if latest_processed_date:
+            punch_status.punchLastPkey = ""
+            punch_status.punchLastDate = latest_processed_date
+            punch_status.punchCount = str(EvaluatedPunchLog.objects.count())
+            punch_status.save()
+
+        # Signal close
+        yield f"event: close\ndata: {json.dumps({'message': f'✅ Evaluation complete. {total_records} records evaluated.'})}\n\n"
+
+    return StreamingHttpResponse(sse_stream(), content_type='text/event-stream')
+def attJsonListEvalLogs(request):
+    start_date = request.GET.get("startdate")
+    end_date = request.GET.get("enddate")
+    campus = request.GET.get("campusid")
+    office = request.GET.get("office")
+    attstatusid = request.GET.get("attstatusid")
+    event_no = request.GET.get("event")
+
+    groupby = request.GET.get("groupby", "eventdate")  # default is eventdate
+
+    filterQuery = ""
+    params = []
+
+    # Date range filter
+    if start_date and end_date:
+        filterQuery += " AND eval.punchDate BETWEEN %s AND %s"
+        params.extend([start_date, end_date])
+    
+    #Campus filter
+    if campus:
+        filterQuery += " AND eval.campusId = %s"
+        params.append(campus)
+
+    #event filter
+    if event_no and event_no != "all":
+        filterQuery += " AND eval.eventNo = %s"
+        params.append(event_no)
+
+    # Office filter
+    if office:
+        filterQuery += " AND eval.officeId = %s"
+        params.append(office)
+
+    # Attendance status filter
+    if attstatusid:
+        filterQuery += " AND eval.attStatusId = %s"
+        params.append(attstatusid)
+
+    # Execute query
+    with connection.cursor() as cursor:
+        cursor.execute(fetchEvalPunchLogs(filterQuery), params)
+        rows = cursor.fetchall()
+
+    # No grouping: flat list
+    if groupby == "none":
+        flat_logs = []
+        for row in rows:
+            flat_logs.append({
+              "evalPunchNo": row[0],
+                "punchNo": row[1],
+                "eventName": row[2],
+                "empId": row[3],
+                "pdsId": row[4],
+                "employee": row[5],
+                "empStatus": row[6],
+                "empType": row[7],
+                "empRank": row[8],
+                "punchDate": row[9],
+                "punchTimeIn": row[10],
+                "punchTimeOut": row[11],
+                "latitude": row[12],
+                "longitude": row[13],
+                "officeId": row[14],
+                "office": row[15],
+                "campusId": row[16],
+                "campus": row[17],
+                "systemDateTime": row[18],
+                "attStatusId": row[19],
+                "isActive": row[20],
             })
-    return full_result
+        return JsonResponse(flat_logs, safe=False)
 
-def api_attendance_json(request):
-    event_no = request.GET.get("eventNo")     # optional
-    target_date = request.GET.get("date")     # optional
-    result = check_attendance(event_no, target_date)
-    return JsonResponse(result, safe=False, json_dumps_params={'indent': 2})
+    # Grouped by event + date -> office -> logs
+    grouped_result = {}
 
+    for row in rows:
+        event_name = row[2]
+        punch_date = row[9]
+        office = row[15]
+
+        # Format: "Flag Ceremony (2025-07-15)"
+        # group_key = f"{event_name} ({punch_date})"
+        formatted_date = punch_date.strftime("%B %d, %Y")
+        group_key = f"{event_name} ({formatted_date})"
+        log = {
+            "evalPunchNo": row[0],
+            "punchNo": row[1],
+            "empId": row[3],
+            "pdsId": row[4],
+            "employee": row[5],
+            "empStatus": row[6],
+            "empType": row[7],
+            "empRank": row[8],
+            "punchDate": punch_date,
+            "punchTimeIn": row[10],
+            "punchTimeOut": row[11],
+            "latitude": row[12],
+            "longitude": row[13],
+            "officeId": row[14],
+            "office": office,
+            "campusId": row[16],
+            "campus": row[16],
+            "systemDateTime": row[18],
+            "attStatusId": row[19],
+        }
+
+        # Initialize event group
+        if group_key not in grouped_result:
+            grouped_result[group_key] = {}
+
+        # Initialize office group
+        if office not in grouped_result[group_key]:
+            grouped_result[group_key][office] = []
+
+        grouped_result[group_key][office].append(log)
+
+    # Sort keys chronologically based on punchDate inside the key
+    sorted_grouped = dict(
+        sorted(
+            grouped_result.items(),
+            key=lambda item: item[0].split("(")[-1].replace(")", "")
+        )
+    )
+
+    return JsonResponse(sorted_grouped)
+
+# def evaluateRawLogs(request):
+#     try:
+#         # Get current counts from both tables
+#         punch_log_qs = PunchLog.objects.filter(isActive='Y')
+#         eval_log_qs = EvaluatedPunchLog.objects.filter(isActive='Y')
+#         punch_log_count = punch_log_qs.count()
+#         eval_log_count = eval_log_qs.count()
+
+#         # Initialize sys_punch records if they don't exist
+#         punch_log_row, _ = SysPunchStatus.objects.get_or_create(
+#             punchName='punch_log',
+#             defaults={
+#                 'punchCount': str(punch_log_count),
+#                 'punchLastPkey': '',
+#                 'isActive': 'Y'
+#             }
+#         )
+
+#         eval_log_row, _ = SysPunchStatus.objects.get_or_create(
+#             punchName='punch_log_eval',
+#             defaults={
+#                 'punchCount': str(eval_log_count),
+#                 'punchLastPkey': '',
+#                 'isActive': 'Y'
+#             }
+#         )
+
+#         # Convert stored counts for comparison
+#         stored_punch_log = int(punch_log_row.punchCount)
+#         stored_eval_log = int(eval_log_row.punchCount)
+
+#         # Determine latest primary keys
+#         latest_punch_log_pkey = str(punch_log_qs.order_by('-punchNo').first().punchNo) if punch_log_count > 0 else ''
+#         latest_eval_log_pkey = str(eval_log_qs.order_by('-evalPunchNo').first().evalPunchNo) if eval_log_count > 0 else ''
+
+#         # Update stored status with current counts and last primary keys
+#         punch_log_row.punchCount = str(punch_log_count)
+#         punch_log_row.punchLastPkey = latest_punch_log_pkey
+#         punch_log_row.save()
+
+#         eval_log_row.punchCount = str(eval_log_count)
+#         eval_log_row.punchLastPkey = latest_eval_log_pkey
+#         eval_log_row.save()
+
+#         # Compare and generate evaluation status
+#         messages = []
+#         needs_eval = False
+
+#         if punch_log_count > stored_punch_log:
+#             messages.append("🟡 New entries detected in punch_log.")
+#             needs_eval = True
+
+#         if eval_log_count < stored_eval_log:
+#             messages.append("⚠️ Evaluated logs are inconsistent.")
+#             needs_eval = True
+
+#         if needs_eval:
+#             return JsonResponse({
+#                 "status": "pending",
+#                 "message": " ".join(messages),
+#                 "newPunchLogEntries": punch_log_count - stored_punch_log,
+#                 "storedPunchCount": stored_punch_log,
+#                 "currentPunchCount": punch_log_count,
+#                 "evalLogCount": eval_log_count,
+#                 "lastPunchPkey": latest_punch_log_pkey,
+#                 "lastEvalPkey": latest_eval_log_pkey
+#             })
+
+#         return JsonResponse({
+#             "status": "ok",
+#             "message": "✅ Logs are up to date.",
+#             "newPunchLogEntries": 0,
+#             "storedPunchCount": stored_punch_log,
+#             "currentPunchCount": punch_log_count,
+#             "evalLogCount": eval_log_count,
+#             "lastPunchPkey": latest_punch_log_pkey,
+#             "lastEvalPkey": latest_eval_log_pkey
+#         })
+
+#     except Exception as e:
+#         return JsonResponse({
+#             "status": "error",
+#             "message": f"An error occurred: {str(e)}"
+#         })
+def evaluateRawLogs(request):
+    try:
+        # 1. Fetch all logs
+        punch_log_qs = PunchLog.objects.filter(isActive='Y')
+        eval_log_qs = EvaluatedPunchLog.objects.filter(isActive='Y')
+
+        punch_log_count = punch_log_qs.count()
+        eval_log_count = eval_log_qs.count()
+
+        # 2. Get or create sys_punch rows for tracking
+        punch_log_status, _ = SysPunchStatus.objects.get_or_create(
+            punchName='punch_log',
+            defaults={'punchCount': '0', 'punchLastPkey': '', 'isActive': 'Y'}
+        )
+        eval_log_status, _ = SysPunchStatus.objects.get_or_create(
+            punchName='punch_log_eval',
+            defaults={'punchCount': '0', 'punchLastPkey': '', 'isActive': 'Y'}
+        )
+
+        # 3. Convert stored counts to int for comparison
+        stored_punch_count = int(punch_log_status.punchCount or 0)
+        stored_eval_count = int(eval_log_status.punchCount or 0)
+
+        # 4. Determine new punch logs
+        if eval_log_count == 0 and punch_log_count > 0:
+            new_punch_log_entries = punch_log_count
+        else:
+            new_punch_log_entries = punch_log_count - stored_punch_count
+
+        new_punch_log_entries = max(0, new_punch_log_entries)  # safety net
+
+        # 5. Determine latest primary keys
+        latest_punch_log_pkey = (
+            str(punch_log_qs.order_by('-punchNo').first().punchNo)
+            if punch_log_count > 0 else ''
+        )
+        latest_eval_log_pkey = (
+            str(eval_log_qs.order_by('-evalPunchNo').first().evalPunchNo)
+            if eval_log_count > 0 else ''
+        )
+
+        # 6. Update punch status table to reflect current state
+        punch_log_status.punchCount = str(punch_log_count)
+        punch_log_status.punchLastPkey = latest_punch_log_pkey
+        punch_log_status.save()
+
+        eval_log_status.punchCount = str(eval_log_count)
+        eval_log_status.punchLastPkey = latest_eval_log_pkey
+        eval_log_status.save()
+
+        # 7. Message status
+        messages = []
+        status = "ok"
+        if new_punch_log_entries > 0:
+            messages.append("🟡 New entries detected in punch_log.")
+            status = "pending"
+        if eval_log_count < stored_eval_count:
+            messages.append("⚠️ Evaluated logs are inconsistent.")
+            status = "inconsistent"
+
+        return JsonResponse({
+            "status": status,
+            "messages": messages,
+            "newPunchLogEntries": new_punch_log_entries,
+            "currentPunchCount": punch_log_count,
+            "storedPunchCount": stored_punch_count,
+            "lastPunchPkey": latest_punch_log_pkey,
+            "lastEvalPkey": latest_eval_log_pkey,
+            "lastEvalPunchCount":stored_eval_count
+        })
+
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)})
+
+#Reports
+
+def evalPunchLogView(request):
+    # Example event fetch (keep as-is if needed)
+    events = ManEvent.objects.raw(fetchQueryEvent())
+
+    # 🔹 Fetch distinct officeId and office name (exclude empty/null)
+    offices = (
+        EvaluatedPunchLog.objects
+        .filter(officeId__isnull=False, office__isnull=False)
+        .exclude(officeId__exact="")
+        .values('officeId', 'office')
+        .distinct()
+        .order_by('office')  # Optional: sort alphabetically
+    )
+    campuses = (
+        EvaluatedPunchLog.objects
+        .filter(campusId__isnull=False, campus__isnull=False)
+        .exclude(campusId__exact="")
+        .values('campusId', 'campus')
+        .distinct()
+        .order_by('campus')
+    )
+
+    return render(
+        request,
+        'amsApp/attendance-eval.html',
+        {
+            'events': events,
+            'offices': offices,  
+            'campuses': campuses,
+        }
+    )
+
+def evalLogStatusJsonList(request):
+    with connection.cursor() as cursor:
+        cursor.execute(fetchSysPunchStatus())
+        rows = cursor.fetchall()
+
+    tempRes = None
+    jsonResultData = []
+
+    for row in rows:
+        tempRes = {
+            "sysEvalId":row[0],
+            "punchName":row[1],
+            "punchCount":row[2],
+            "isActive":row[3]
+           }
+        jsonResultData.append(tempRes)
+        
+    return JsonResponse({"data":list(jsonResultData)},safe=False)
+    
 #print 
 def printView(request):
-    return render(request, 'amsApp/print.html')
+    # return render(request, 'amsApp/print.html')
+   
+    encoded_data = request.GET.get("data", "")
+    if not encoded_data:
+        return HttpResponse("No data provided", status=400)
 
+    try:
+        decoded_json = base64.b64decode(encoded_data).decode("utf-8")
+        context = json.loads(decoded_json)
+    except Exception as e:
+        return HttpResponse(f"Error decoding data: {str(e)}", status=400)
+
+    # Load and render the template
+    template = get_template("amsApp/print.html")
+    html = template.render(context)
+
+    # Create a PDF using xhtml2pdf
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = f'filename="attendance_{context["date"]}.pdf"'
+
+    pisa_status = pisa.CreatePDF(html, dest=response)
+
+    if pisa_status.err:
+        return HttpResponse("PDF generation failed", status=500)
+
+    return response
+
+def printBatchReport(request):
+    # 1. Parse query parameters
+    start_date_str = request.GET.get("startdate")
+    end_date_str = request.GET.get("enddate")
+    office = request.GET.get("office")
+
+    try:
+        start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
+        end_date = datetime.strptime(end_date_str, "%Y-%m-%d").date()
+    except Exception:
+        return render(request, "amsApp/error.html", {"error": "Invalid date format"})
+
+    # 2. Generate week ranges
+    def get_week_ranges(start, end):
+        weeks = []
+        current = start
+        week_num = 1
+        while current <= end:
+            week_start = current
+            week_end = min(week_start + timedelta(days=6), end)
+            weeks.append((f"Week {week_num}", week_start, week_end))
+            current = week_end + timedelta(days=1)
+            week_num += 1
+        return weeks
+
+    weeks = get_week_ranges(start_date, end_date)
+
+    # 3. Build WHERE clause
+    filters = f"AND eval.punchDate BETWEEN '{start_date}' AND '{end_date}'"
+    if office:
+        filters += f" AND eval.officeId = '{office}'"
+
+    # 4. SQL query
+    with connection.cursor() as cursor:
+        cursor.execute(f"""
+            SELECT eval.evalPunchNo, eval.punchNo, evt.eventName,
+                   eval.empId, eval.employee, eval.empRank,
+                   eval.punchDate, eval.punchTimeIn, eval.punchTimeOut,
+                   eval.office, eval.attStatusId
+            FROM punch_log_eval eval
+            LEFT JOIN man_event evt ON eval.eventNo = evt.eventNo
+            WHERE eval.isActive = 'Y' {filters}
+            ORDER BY eval.employee, eval.punchDate
+        """)
+        rows = cursor.fetchall()
+
+    # 5. Column mapping
+    COLS = {
+        'eventName': 2,
+        'employee': 4,
+        'empRank': 5,
+        'punchDate': 6,
+        'punchTimeIn': 7,
+        'punchTimeOut': 8,
+    }
+
+    # 6. Group data
+    grouped_data = defaultdict(lambda: {
+        "position": "",
+        "weeks": defaultdict(dict)
+    })
+
+    for row in rows:
+        emp_name = row[COLS['employee']]
+        position = row[COLS['empRank']]
+        date = row[COLS['punchDate']]
+        event = row[COLS['eventName']]
+        timein = row[COLS['punchTimeIn']]
+        timeout = row[COLS['punchTimeOut']]
+
+        # Choose the correct time based on event type
+        if "ceremony" in event.lower():
+            punch_time = timein
+        elif "retreat" in event.lower():
+            punch_time = timeout
+        else:
+            punch_time = timein  # default fallback
+
+        if not punch_time or str(punch_time) == "00:00:00":
+            punch_time = "Absent"
+
+        for label, start, end in weeks:
+            if start <= date <= end:
+                event_key = f"{event} - {date.strftime('%B %d, %Y')}"
+                grouped_data[emp_name]["position"] = position
+                grouped_data[emp_name]["weeks"][label][event_key] = punch_time
+                break
+
+    template_path = 'amsApp/print-batch.html'
+    context = {
+        "start_date": start_date,
+        "end_date": end_date,
+        "office": office,
+        "weeks": weeks,
+        "data": list(grouped_data.items()),  # list of tuples for template iteration
+    }
+    # Render and convert to PDF
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'inline; filename="AttendanceBatchReport.pdf"'
+
+    template = get_template(template_path)
+    html = template.render(context)
+
+    pisa_status = pisa.CreatePDF(html, dest=response)
+
+    if pisa_status.err:
+        return HttpResponse('PDF generation failed')
+    return response
+    # return render(request, "amsApp/print-batch.html", context)
+
+def printBatch(request):
+    return render(request, 'amsApp/print-batch.html')
+
+#celery 
+
+def start_evaluation(request):
+    task = evaluate_punch_logs_task.delay()
+    cache.delete(f"eval_progress_{task.id}")  # clear old progress
+    return JsonResponse({"task_id": task.id})
+
+def evaluation_progress(request):
+    task_id = request.GET.get("task_id")
+    progress = cache.get(f"eval_progress_{task_id}", {"percent": 0, "logs": []})
+    return JsonResponse(progress)
