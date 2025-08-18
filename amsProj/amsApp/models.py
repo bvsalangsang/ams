@@ -37,6 +37,7 @@ class ManShiftBreak(models.Model):
 class PunchLog(models.Model):
     punchNo = models.AutoField(primary_key=True, editable=True) 
     eventNo = models.CharField(max_length=8)
+    locationId = models.CharField(max_length=10, null=True, blank=True)
     empId = models.CharField(max_length=20)
     pdsId = models.CharField(max_length=20,null=True)
     employee= models.CharField(max_length=150,null=True)
@@ -56,6 +57,7 @@ class PunchLog(models.Model):
 class PunchLogTamper(models.Model):
         tamperNo = models.AutoField(primary_key=True, editable=True) 
         eventNo = models.CharField(max_length=8)
+        locationId = models.CharField(max_length=10, null=True, blank=True)
         empId = models.CharField(max_length=20)
         pdsId = models.CharField(max_length=20,null=True)
         employee= models.CharField(max_length=150,null=True)
@@ -76,6 +78,7 @@ class EvaluatedPunchLog(models.Model):
     evalPunchNo = models.AutoField(primary_key=True, editable=True) 
     punchNo = models.CharField(max_length=10)
     eventNo = models.CharField(max_length=8)
+    locationId = models.CharField(max_length=10, null=True, blank=True)
     empId = models.CharField(max_length=20)
     pdsId = models.CharField(max_length=20,null=True)
     employee= models.CharField(max_length=150,null=True)
@@ -190,3 +193,13 @@ class SysPunchStatus(models.Model):
 
     class Meta: 
         db_table = "sys_punch"
+
+class DashUsers(models.Model):
+    empId = models.CharField(max_length=20, primary_key=True)
+    pdsId = models.CharField(max_length=20, null=True, blank=True)
+    employee = models.CharField(max_length=150, null=True, blank=True)
+    dateCreated = models.DateTimeField(auto_now_add=True) 
+    isActive = models.CharField(max_length=1, default='Y')    
+    
+    class Meta:
+        db_table = "dash_users"

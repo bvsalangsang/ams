@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-_7u&s9wrcl+l03@y5%6brf^sv745_t=0i3ni)@*s_lxz@jej!0'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False #True 
 
 ALLOWED_HOSTS = ['*']
 
@@ -54,6 +54,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'amsApp.middleware.HRISAuthenticationMiddleware',  
 ]
 
 ROOT_URLCONF = 'amsProj.urls'
@@ -174,6 +175,37 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Alternatively, allow all origins (not recommended for production):
 CORS_ALLOW_ALL_ORIGINS = True
 
+
+# Allow credentials if needed
+CORS_ALLOW_CREDENTIALS = True
+
+# Explicitly allow the headers your Flutter app sends
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+    'x-api-key',        # Your custom header
+    'x-signature',      # Your custom header  
+    'x-timestamp',      # Your custom header
+]
+
+# Allow the HTTP methods your API uses
+CORS_ALLOWED_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH', 
+    'POST',
+    'PUT',
+]
+
+
 # REST Framework Configuration
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -192,3 +224,21 @@ CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
+
+#authentication
+HRIS_API_URL = "https://hris.usep.edu.ph/api/dashboard/login"
+HRIS_API_TOKEN = "496871859d96697ba10536775445fd8f"  # Ideally from env vars
+HRIS_TIMEOUT = 5 
+
+# API Authentication Settings
+FLUTTER_API_KEYS = [
+    'USeP-1234-AMS-321-API-000-key-12345',
+    '1234-USeP-321-AMS-000-API-12345-key',
+]
+
+FLUTTER_API_SECRET = 'B3o1b3b3y1'
+
+FLUTTER_API_TOKENS = [
+    'USeP-AMS-bearer-token-abc123def456',
+    'USeP-AMS-backup-bearer-token-xyz789uvw012',
+]

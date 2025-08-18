@@ -10,17 +10,82 @@ from xhtml2pdf import pisa
 from io import BytesIO
 from django.db import transaction
 from django.http import StreamingHttpResponse
-import time
-import requests
-import json
-import base64
 from django.template.loader import get_template
 from collections import defaultdict
 from datetime import datetime,date,timedelta
+from django.contrib.auth import authenticate, login, logout
+from django.middleware.csrf import get_token
+from django.views.decorators.csrf import csrf_protect
+from django.shortcuts import redirect
+from django.contrib import messages
+from django.conf import settings
+from django.urls import reverse
 from .sqlcommands import * 
 from .sqlparams import *
 from .forms import *    
 from .tasks import *
+import time
+import requests
+import json
+import base64
+
+def login(request):
+    return render(request, "amsApp/login.html")
+
+def logoutView(request):
+    # Clear all session data
+    request.session.flush()
+    # Redirect to login page
+    return redirect(reverse('login'))
+
+@csrf_protect  # Enforce CSRF protection for browser requests
+def logView(request):
+    if request.method == 'POST':
+        print("POST request received")  # Debug
+        employee_id = request.POST.get('EmployeeID')
+        password = request.POST.get('Password')
+
+        if not employee_id or not password:
+            return render(request, 'amsApp/login.html', {
+                'error_message': 'Missing credentials'
+            })
+
+        apiData = {
+            'pmaps_id': employee_id,
+            'password': password,
+            'token': settings.HRIS_API_TOKEN
+        }
+        headers = {"Accept": "application/json"}
+
+        try:
+            response = requests.post(
+                settings.HRIS_API_URL,
+                data=apiData,
+                headers=headers,
+                timeout=getattr(settings, 'HRIS_TIMEOUT', 5)
+            )
+            response.raise_for_status()
+            data = response.json()
+        except (requests.RequestException, ValueError):
+            return render(request, 'amsApp/login.html', {
+                'error_message': 'Authentication server error'
+            })
+
+        if data.get('id'):
+            if 'django_session' in connection.introspection.table_names():
+                request.session['hris_id'] = data['id']
+                request.session['hris_name'] = f"{data.get('FirstName', '')} {data.get('LastName', '')}"
+
+            # Redirect user to dashboard
+            return redirect('dashboard')  # 'dash_admin' is the Django URL name for /dash-admin
+        else:
+            return render(request, 'amsApp/login.html', {
+                'error_message': 'Invalid Employee ID or Password'
+            })
+
+    # For GET requests, render login form
+    return render(request, 'amsApp/login.html')
+  
 
 
 def dashboard(request):
@@ -1854,9 +1919,7 @@ def evaluatePunchLogs(request):
                                 if punch_out_dt and abs(me_dt - punch_out_dt) <= tolerance:
                                     row[7] = "ME"
                                     justification = me.get("justification", "") or justification
-                                # If punch_in/punch_out were None but you want to mark ME even if DB had no in/out,
-                                # you could add logic here to set row[6]/row[7] = "ME" when punch_in_dt is None.
-                                # (Currently we only tag existing times within tolerance.)
+                   
 
                         msg = f"✅ Present: {emp_name} [{event_no}]"
                         record = EvaluatedPunchLog(

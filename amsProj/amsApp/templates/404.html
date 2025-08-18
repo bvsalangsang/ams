@@ -1,0 +1,610 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Page Not Found - USeP-AMS</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f0f23;
+            color: #ffffff;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+        
+        /* Animated background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(45deg, #0f0f23, #1a1a3e, #2d2d5f);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+        }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        /* Floating particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        .particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        .particle:nth-child(1) {
+            top: 20%;
+            left: 10%;
+            width: 4px;
+            height: 4px;
+            animation-delay: 0s;
+        }
+        
+        .particle:nth-child(2) {
+            top: 80%;
+            left: 20%;
+            width: 6px;
+            height: 6px;
+            animation-delay: 2s;
+        }
+        
+        .particle:nth-child(3) {
+            top: 40%;
+            left: 80%;
+            width: 3px;
+            height: 3px;
+            animation-delay: 4s;
+        }
+        
+        .particle:nth-child(4) {
+            top: 10%;
+            left: 70%;
+            width: 5px;
+            height: 5px;
+            animation-delay: 1s;
+        }
+        
+        .particle:nth-child(5) {
+            top: 70%;
+            left: 90%;
+            width: 4px;
+            height: 4px;
+            animation-delay: 3s;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0.3; }
+            50% { transform: translateY(-100px) translateX(50px); opacity: 1; }
+        }
+        
+        /* Main container */
+        .error-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .error-content {
+            text-align: center;
+            max-width: 600px;
+            z-index: 10;
+        }
+        
+        /* 404 Animation */
+        .error-number {
+            position: relative;
+            margin-bottom: 2rem;
+        }
+        
+        .glitch {
+            font-size: clamp(8rem, 15vw, 12rem);
+            font-weight: 700;
+            color: transparent;
+            background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #f5576c);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            animation: gradientShift 3s ease-in-out infinite, glitch 2s infinite;
+            position: relative;
+            letter-spacing: -0.05em;
+        }
+        
+        .glitch::before,
+        .glitch::after {
+            content: "404";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .glitch::before {
+            animation: glitch-1 0.5s infinite;
+        }
+        
+        .glitch::after {
+            animation: glitch-2 0.5s infinite;
+        }
+        
+        @keyframes glitch {
+            0%, 100% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+        }
+        
+        @keyframes glitch-1 {
+            0%, 100% { 
+                transform: translate(0);
+                opacity: 1;
+            }
+            10% { 
+                transform: translate(-2px, -2px);
+                opacity: 0.8;
+            }
+            20% { 
+                transform: translate(2px, 2px);
+                opacity: 0.8;
+            }
+        }
+        
+        @keyframes glitch-2 {
+            0%, 100% { 
+                transform: translate(0);
+                opacity: 1;
+            }
+            30% { 
+                transform: translate(2px, -2px);
+                opacity: 0.7;
+            }
+            60% { 
+                transform: translate(-2px, 2px);
+                opacity: 0.7;
+            }
+        }
+        
+        /* Text content */
+        .error-title {
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #ffffff, #a8a8a8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.02em;
+        }
+        
+        .error-description {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 3rem;
+            line-height: 1.6;
+            font-weight: 400;
+        }
+        
+      
+        /* Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 3rem;
+        }
+        
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            min-width: 160px;
+            justify-content: center;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .btn:hover::before {
+            left: 100%;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.6);
+            color: white;
+            text-decoration: none;
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(255, 255, 255, 0.1);
+            color: white;
+            text-decoration: none;
+        }
+        
+        /* Interactive robot */
+        .robot-container {
+            margin-bottom: 2rem;
+            cursor: pointer;
+        }
+        
+        .robot {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto;
+            position: relative;
+            animation: hover 3s ease-in-out infinite;
+        }
+        
+        .robot-body {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-radius: 20px;
+            position: relative;
+            margin: 0 auto;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+        
+        .robot-eyes {
+            display: flex;
+            justify-content: space-between;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+        }
+        
+        .robot-eye {
+            width: 12px;
+            height: 12px;
+            background: white;
+            border-radius: 50%;
+            animation: blink 4s infinite;
+        }
+        
+        .robot-mouth {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 3px;
+            background: white;
+            border-radius: 2px;
+        }
+        
+        .robot-antenna {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 3px;
+            height: 15px;
+            background: #667eea;
+        }
+        
+        .robot-antenna::after {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -3px;
+            width: 9px;
+            height: 9px;
+            background: #f093fb;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes hover {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes blink {
+            0%, 90%, 100% { transform: scaleY(1); }
+            95% { transform: scaleY(0.1); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.7; }
+        }
+        
+        .robot-container:hover .robot {
+            animation-duration: 0.5s;
+        }
+        
+        /* Footer */
+        .error-footer {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
+            margin-top: 2rem;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 300px;
+            }
+            
+            .search-input {
+                max-width: 100%;
+            }
+        }
+        
+        /* Loading animation for search */
+        .search-loading {
+            display: none;
+            position: absolute;
+            right: 1.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-animation"></div>
+    
+    <div class="particles">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+    
+    <div class="error-container">
+        <div class="error-content">
+            <div class="robot-container" onclick="animateRobot()">
+                <div class="robot">
+                    <div class="robot-antenna"></div>
+                    <div class="robot-body">
+                        <div class="robot-eyes">
+                            <div class="robot-eye"></div>
+                            <div class="robot-eye"></div>
+                        </div>
+                        <div class="robot-mouth"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="error-number">
+                <div class="glitch">404</div>
+            </div>
+            
+            <h1 class="error-title">Page Not Found</h1>
+            <p class="error-description">
+                The page you're looking for has gone on an unexpected journey through cyberspace. 
+                Let's help you find your way back to where you need to be.
+            </p>
+            
+            <div class="action-buttons">
+                <a href="{% url 'dashboard' %}" class="btn btn-primary">
+                    <i class="fas fa-home"></i>
+                    Go to Dashboard
+                </a>
+                <a href="javascript:history.back()" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i>
+                    Go Back
+                </a>
+            </div>
+            
+            <div class="error-footer">
+                <p>Error Code: 404 • USeP Attendance Management System</p>
+                <p>If you believe this is an error, please contact technical support.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Interactive robot animation
+        function animateRobot() {
+            const robot = document.querySelector('.robot');
+            robot.style.animation = 'none';
+            robot.offsetHeight; // Trigger reflow
+            robot.style.animation = 'hover 0.3s ease-in-out 3';
+            
+            // Change robot expression temporarily
+            const eyes = document.querySelectorAll('.robot-eye');
+            eyes.forEach(eye => {
+                eye.style.transform = 'scaleY(0.3)';
+                setTimeout(() => {
+                    eye.style.transform = 'scaleY(1)';
+                }, 200);
+            });
+        }
+        
+        // Search functionality with animation
+        const searchInput = document.getElementById('searchInput');
+        const searchIcon = document.getElementById('searchIcon');
+        const searchLoading = document.getElementById('searchLoading');
+        
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+        
+        function performSearch() {
+            const query = searchInput.value.trim();
+            if (query) {
+                // Show loading animation
+                searchIcon.style.display = 'none';
+                searchLoading.style.display = 'block';
+                
+                // Simulate search delay
+                setTimeout(() => {
+                    // In a real application, you would perform the actual search here
+                    // For demo purposes, let's redirect to dashboard with search parameter
+                    window.location.href = `{% url 'dashboard' %}?search=${encodeURIComponent(query)}`;
+                }, 1500);
+            }
+        }
+        
+        // Enhanced particle animation
+        function createParticle() {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.top = Math.random() * 100 + '%';
+            particle.style.width = particle.style.height = Math.random() * 6 + 2 + 'px';
+            particle.style.animationDelay = Math.random() * 6 + 's';
+            particle.style.animationDuration = (Math.random() * 4 + 4) + 's';
+            
+            document.querySelector('.particles').appendChild(particle);
+            
+            // Remove particle after animation
+            setTimeout(() => {
+                if (particle.parentNode) {
+                    particle.parentNode.removeChild(particle);
+                }
+            }, 8000);
+        }
+        
+        // Create particles periodically
+        setInterval(createParticle, 3000);
+        
+        // Add some initial particles
+        for (let i = 0; i < 8; i++) {
+            setTimeout(createParticle, i * 500);
+        }
+        
+        // Add hover effect to buttons
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-3px) scale(1.02)';
+            });
+            
+            btn.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+        
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                window.history.back();
+            } else if (e.key === 'Enter' && e.target !== searchInput) {
+                window.location.href = '{% url "dashboard" %}';
+            }
+        });
+        
+        // Add focus trap for accessibility
+        const focusableElements = 'input, button, a[href], [tabindex]:not([tabindex="-1"])';
+        const firstFocusableElement = document.querySelectorAll(focusableElements)[0];
+        const focusableContent = document.querySelectorAll(focusableElements);
+        const lastFocusableElement = focusableContent[focusableContent.length - 1];
+        
+        document.addEventListener('keydown', function(e) {
+            const isTabPressed = e.key === 'Tab';
+            
+            if (!isTabPressed) return;
+            
+            if (e.shiftKey) {
+                if (document.activeElement === firstFocusableElement) {
+                    lastFocusableElement.focus();
+                    e.preventDefault();
+                }
+            } else {
+                if (document.activeElement === lastFocusableElement) {
+                    firstFocusableElement.focus();
+                    e.preventDefault();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
