@@ -2,6 +2,10 @@ from django.urls import path
 from .views import *
 
 urlpatterns = [
+
+    path('dashboard/login/', login, name='login'),
+    path('dashboard/logview/', logView, name='logView'),
+    path("dashboard/logout/", logoutView, name="logout"),
     path('dashboard/', dashboard, name='dashboard'),
     path('dashboard/attendance-log/', attendanceLogs, name='attendanceLogs'),
     path('dashboard/attJsonList/', attJsonList, name='attJsonList'),

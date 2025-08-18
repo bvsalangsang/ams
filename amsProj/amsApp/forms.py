@@ -48,3 +48,14 @@ class LocationForm(forms.ModelForm):
             'address': forms.Textarea(attrs={'rows': '4', 'class': 'form-control', 'placeholder': 'Address'}),
          }
 
+
+class LoginForm(forms.Form):
+    username = forms.CharField(
+        max_length=150,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Username'}),
+        label='Username'
+    )
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Password'}),
+        label='Password'
+    )   

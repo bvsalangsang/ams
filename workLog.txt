@@ -606,3 +606,46 @@ Downloaded file
 '=-250808- 0040 - Version 0.0.40 - * BOB *
 '-------------------------------------------------------------------------------
   ***upload files on github  "dev-250808"***
+
+
+'-------------------------------------------------------------------------------
+'=-250811- 0041 - Version 0.0.41 - * BOB *
+'-------------------------------------------------------------------------------
+=-html 
+  * added login.html
+
+=-settings.py 
+  * added authentication on 'HRIS login'
+
+'-------------------------------------------------------------------------------
+'=-250812- 0042 - Version 0.0.42 - * BOB *
+'-------------------------------------------------------------------------------
+=-models.py 
+  * added 'DashUsers' model
+
+=-auth_backend.py
+  * remove file
+
+=-urls.py 
+  * added path 'login'
+  * added path 'logView'
+  
+=-settings.py 
+  * added MIDDLEWARE 'amsApp.middleware.HRISAuthenticationMiddleware'
+  * added HRIS authentication 
+
+'-------------------------------------------------------------------------------
+'=-250813- 0043 - Version 0.0.43 - * BOB *
+'-------------------------------------------------------------------------------
+=-settings.py 
+  * added API Authentication Settings
+
+'-------------------------------------------------------------------------------
+'=-250818- 0044 - Version 0.0.44 - * BOB *
+'-------------------------------------------------------------------------------
+=-models.py 
+  * added 'locationId' on 'punchLog'
+  * added 'locationId' on 'PunchLogTamper'
+  * added 'locationId' on 'EvaluatedPunchLog'
+
+***upload files on github  "dev-250818"***
