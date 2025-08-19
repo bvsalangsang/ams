@@ -36,7 +36,7 @@ class HRISAuthenticationMiddleware(MiddlewareMixin):
         'dashboard/api/get-schedule/',
         'dashboard/api/get-schedule-by-date/',
         'dashboard/api/get-location-by-id/',
-        # 'dashboard/api/get-sysinfo/',
+        'dashboard/api/get-sysinfo/',
     ]
     
     def process_request(self, request):
