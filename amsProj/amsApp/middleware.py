@@ -26,7 +26,17 @@ class HRISAuthenticationMiddleware(MiddlewareMixin):
     
     # API endpoints that require API authentication
     API_URLS = [
-        'dashboard/api/',
+        'dashboard/api/get-data-punch',
+        'dashboard/api/get-data-shift',
+        'dashboard/api/add-punch',
+        'dashboard/api/add-tamper',
+        'dashboard/api/get-server-time/',
+        'dashboard/api/get-punch-by-date/',
+        'dashboard/api/get-punch-by-id/',
+        'dashboard/api/get-schedule/',
+        'dashboard/api/get-schedule-by-date/',
+        'dashboard/api/get-location-by-id/',
+        # 'dashboard/api/get-sysinfo/',
     ]
     
     def process_request(self, request):
