@@ -649,3 +649,12 @@ Downloaded file
   * added 'locationId' on 'EvaluatedPunchLog'
 
 ***upload files on github  "dev-250818"***
+
+'-------------------------------------------------------------------------------
+'=-250828- 0045 - Version 0.0.45 - * BOB *
+'-------------------------------------------------------------------------------
+=-middleware.py 
+  * commented lines on API_URLS
+  * urls from API_URLS transfered to EXEMPT_URLS
+
+***upload files on github  "dev-250828"***
