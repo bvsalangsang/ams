@@ -209,9 +209,10 @@ CSRF_TRUSTED_ORIGINS = [
     "https://ams.usep.edu.ph",
     "https://www.ams.usep.edu.ph",  # optional, in case users add www
     "https://ams.usep.edu.ph/"
+
 ]
 
-CSRF_TRUSTED_ORIGINS.append("null")
+# CSRF_TRUSTED_ORIGINS.append("null")
 
 # REST Framework Configuration
 REST_FRAMEWORK = {

@@ -22,21 +22,35 @@ class HRISAuthenticationMiddleware(MiddlewareMixin):
         'admin/',
         'static/',
         'media/',
-    ]
-    
-    # API endpoints that require API authentication
-    API_URLS = [
+        # remove if you want to secure the api
         'dashboard/api/get-data-punch',
         'dashboard/api/get-data-shift',
         'dashboard/api/add-punch',
         'dashboard/api/add-tamper',
         'dashboard/api/get-server-time/',
-        'dashboard/api/get-punch-by-date/',
+        'dashboard/api/get-fluttepunch-by-date/',
         'dashboard/api/get-punch-by-id/',
         'dashboard/api/get-schedule/',
         'dashboard/api/get-schedule-by-date/',
         'dashboard/api/get-location-by-id/',
         'dashboard/api/get-sysinfo/',
+        'dashboard/api/*',
+        
+    ]
+    
+    # API endpoints that require API authentication
+    API_URLS = [
+        # 'dashboard/api/get-data-punch',
+        # 'dashboard/api/get-data-shift',
+        # 'dashboard/api/add-punch',
+        # 'dashboard/api/add-tamper',
+        # 'dashboard/api/get-server-time/',
+        # 'dashboard/api/get-punch-by-date/',
+        # 'dashboard/api/get-punch-by-id/',
+        # 'dashboard/api/get-schedule/',
+        # 'dashboard/api/get-schedule-by-date/',
+        # 'dashboard/api/get-location-by-id/',
+        # 'dashboard/api/get-sysinfo/',
     ]
     
     def process_request(self, request):
