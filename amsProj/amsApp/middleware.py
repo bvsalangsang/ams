@@ -28,7 +28,7 @@ class HRISAuthenticationMiddleware(MiddlewareMixin):
         'dashboard/api/add-punch',
         'dashboard/api/add-tamper',
         'dashboard/api/get-server-time/',
-        'dashboard/api/get-fluttepunch-by-date/',
+        'dashboard/api/get-punch-by-date/',
         'dashboard/api/get-punch-by-id/',
         'dashboard/api/get-schedule/',
         'dashboard/api/get-schedule-by-date/',
