@@ -658,3 +658,11 @@ Downloaded file
   * urls from API_URLS transfered to EXEMPT_URLS
 
 ***upload files on github  "dev-250828"***
+
+'-------------------------------------------------------------------------------
+'=-250902- 0046- Version 0.0.46 - * BOB *
+'-------------------------------------------------------------------------------
+=-middleware.py 
+  * corrected exemp url path name 'dashboard/api/get-punch-by-id/'
+
+***upload files on github  "dev-250902"***
